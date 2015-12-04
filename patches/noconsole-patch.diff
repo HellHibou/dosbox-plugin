@@ -1,0 +1,38 @@
+diff --git a/src/gui/sdlmain.cpp b/src/gui/sdlmain.cpp
+index 43df32f..d323230 100644
+--- a/src/gui/sdlmain.cpp
++++ b/src/gui/sdlmain.cpp
+@@ -1908,6 +1933,7 @@ int main(int argc, char* argv[]) {
+ 		
+ 		/* Can't disable the console with debugger enabled */
+ #if defined(WIN32) && !(C_DEBUG)
++	#if !(_WINDOWS) 
+ 		if (control->cmdline->FindExist("-noconsole")) {
+ 			FreeConsole();
+ 			/* Redirect standard input and standard output */
+@@ -1916,7 +1942,15 @@ int main(int argc, char* argv[]) {
+ 			freopen(STDERR_FILE, "w", stderr);
+ 			setvbuf(stdout, NULL, _IOLBF, BUFSIZ);	/* Line buffered */
+ 			setbuf(stderr, NULL);					/* No buffering */
+-		} else {
++		} else
++	#else // If not compile in console mode, don't show console by default
++		if (!control->cmdline->FindExist("-console")){
++		 		fclose(stdin);
++				fclose(stdout);
++				fclose(stderr);
++		} else
++	#endif
++		{
+ 			if (AllocConsole()) {
+ 				fclose(stdin);
+ 				fclose(stdout);
+@@ -1927,7 +1961,7 @@ int main(int argc, char* argv[]) {
+ 			}
+ 			SetConsoleTitle("DOSBox Status Window");
+ 		}
+-#endif  //defined(WIN32) && !(C_DEBUG)
++#endif
+ 		if (control->cmdline->FindExist("-version") ||
+ 		    control->cmdline->FindExist("--version") ) {
+ 			printf("\nDOSBox version %s, copyright 2002-2015 DOSBox Team.\n\n",VERSION);

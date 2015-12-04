@@ -50,6 +50,8 @@
 #include "cross.h"
 #include "control.h"
 
+#include "../plugin/src/DosBoxPatch/dosboxPluginPatch.hpp"
+
 #define MAPPERFILE "mapper-" VERSION ".map"
 //#define DISABLE_JOYSTICK
 
@@ -284,27 +286,46 @@ extern bool CPU_CycleAutoAdjust;
 //Globals for keyboard initialisation
 bool startup_state_numlock=false;
 bool startup_state_capslock=false;
+static bool showTitleInfo=true;
 
 void GFX_SetTitle(Bit32s cycles,Bits frameskip,bool paused){
-	char title[200]={0};
+	char * title;
 	static Bit32s internal_cycles=0;
 	static Bit32s internal_frameskip=0;
 	if(cycles != -1) internal_cycles = cycles;
 	if(frameskip != -1) internal_frameskip = frameskip;
-	if(CPU_CycleAutoAdjust) {
-		sprintf(title,"DOSBox %s, CPU speed: max %3d%% cycles, Frameskip %2d, Program: %8s",VERSION,internal_cycles,internal_frameskip,RunningProgram);
-	} else {
-		sprintf(title,"DOSBox %s, CPU speed: %8d cycles, Frameskip %2d, Program: %8s",VERSION,internal_cycles,internal_frameskip,RunningProgram);
-	}
 
-	if(paused) strcat(title," PAUSED");
+	if (DosBoxPluginManager::windowTitle == NULL) { // Using custom title ?
+		title = (char*)malloc(200);
+		if(showTitleInfo) {
+			if(CPU_CycleAutoAdjust) {
+			if (DosBoxPluginManager::windowTitle == NULL) {
+				sprintf(title,"DOSBox %s, CPU speed: max %3d%% cycles, Frameskip %2d, Program: %8s",VERSION,internal_cycles,internal_frameskip,RunningProgram); }
+			} else {
+				sprintf(title,"DOSBox %s, CPU speed: %8d cycles, Frameskip %2d, Program: %8s",VERSION,internal_cycles,internal_frameskip,RunningProgram); }
+		} else {
+			sprintf(title,"%s",RunningProgram); }
+	} else {
+		title = (char*)malloc(200 + strlen(DosBoxPluginManager::windowTitle));
+		if(showTitleInfo) {
+			if(CPU_CycleAutoAdjust) {
+			if (DosBoxPluginManager::windowTitle == NULL) {
+				sprintf(title,"DOSBox %s, CPU speed: max %3d%% cycles, Frameskip %2d, Program: %8s",VERSION,internal_cycles,internal_frameskip,DosBoxPluginManager::windowTitle); }
+			} else {
+				sprintf(title,"DOSBox %s, CPU speed: %8d cycles, Frameskip %2d, Program: %8s",VERSION,internal_cycles,internal_frameskip,DosBoxPluginManager::windowTitle); }
+		} else {
+		sprintf(title,"%s",DosBoxPluginManager::windowTitle); }
+	}
+	
+	if(paused) strcat(title," - PAUSED");
 	SDL_WM_SetCaption(title,VERSION);
+	free(title);
 }
 
 static unsigned char logo[32*32*4]= {
 #include "dosbox_logo.h"
 };
-static void GFX_SetIcon() {
+void GFX_SetIcon() {
 #if !defined(MACOSX)
 	/* Set Icon (must be done before any sdl_setvideomode call) */
 	/* But don't set it on OS X, as we use a nicer external icon there. */
@@ -1161,6 +1182,7 @@ void Restart(bool pressed);
 static void GUI_StartUp(Section * sec) {
 	sec->AddDestroyFunction(&GUI_ShutDown);
 	Section_prop * section=static_cast<Section_prop *>(sec);
+	showTitleInfo = section->Get_bool("showtitleinfo");
 	sdl.active=false;
 	sdl.updating=false;
 
@@ -1717,6 +1739,9 @@ void Config_Add_SDL() {
 
 	Pbool = sdl_sec->Add_bool("usescancodes",Property::Changeable::Always,true);
 	Pbool->Set_help("Avoid usage of symkeys, might not work on all operating systems.");
+
+	Pbool = sdl_sec->Add_bool("showtitleinfo",Property::Changeable::Always,true);
+	Pbool->Set_help("Show extra information into title's window");
 }
 
 static void show_warning(char const * const message) {
@@ -1908,6 +1933,7 @@ int main(int argc, char* argv[]) {
 		
 		/* Can't disable the console with debugger enabled */
 #if defined(WIN32) && !(C_DEBUG)
+	#if !(_WINDOWS) 
 		if (control->cmdline->FindExist("-noconsole")) {
 			FreeConsole();
 			/* Redirect standard input and standard output */
@@ -1916,7 +1942,15 @@ int main(int argc, char* argv[]) {
 			freopen(STDERR_FILE, "w", stderr);
 			setvbuf(stdout, NULL, _IOLBF, BUFSIZ);	/* Line buffered */
 			setbuf(stderr, NULL);					/* No buffering */
-		} else {
+		} else
+	#else // If not compile in console mode, don't show console by default
+		if (!control->cmdline->FindExist("-console")){
+		 		fclose(stdin);
+				fclose(stdout);
+				fclose(stderr);
+		} else
+	#endif
+		{
 			if (AllocConsole()) {
 				fclose(stdin);
 				fclose(stdout);
@@ -1927,7 +1961,7 @@ int main(int argc, char* argv[]) {
 			}
 			SetConsoleTitle("DOSBox Status Window");
 		}
-#endif  //defined(WIN32) && !(C_DEBUG)
+#endif
 		if (control->cmdline->FindExist("-version") ||
 		    control->cmdline->FindExist("--version") ) {
 			printf("\nDOSBox version %s, copyright 2002-2015 DOSBox Team.\n\n",VERSION);
@@ -1937,6 +1971,8 @@ int main(int argc, char* argv[]) {
 			printf("please read the COPYING file thoroughly before doing so.\n\n");
 			return 0;
 		}
+
+		DosBoxPluginManager::preInit(control);
 		if(control->cmdline->FindExist("-printconf")) printconfiglocation();
 
 #if C_DEBUG

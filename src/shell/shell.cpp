@@ -27,6 +27,7 @@
 #include "callback.h"
 #include "support.h"
 
+#include "../plugin/src/DosBoxPatch/dosboxPluginPatch.hpp"
 
 Bitu call_shellstop;
 /* Larger scope so shell_del autoexec can use it to
@@ -325,6 +326,7 @@ void DOS_Shell::Run(void) {
 				if (echo) WriteOut("\n");
 			}
 		} else {
+			DosBoxPluginManager::start(); 
 			if (echo) ShowPrompt();
 			InputCommand(input_line);
 			ParseLine(input_line);
@@ -680,7 +682,9 @@ void SHELL_Init() {
 
 	
 	SHELL_ProgramStart(&first_shell);
+	DosBoxPluginManager::postInit((DOS_Shell*)first_shell);
 	first_shell->Run();
+	DosBoxPluginManager::unload();
 	delete first_shell;
 	first_shell = 0;//Make clear that it shouldn't be used anymore
 }

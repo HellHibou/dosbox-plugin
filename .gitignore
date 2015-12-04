@@ -1,0 +1,44 @@
+Thumbs.db
+*.cdf
+*.cache
+*.obj
+*.ilk
+*.resources
+*.tlb
+*.tli
+*.tlh
+*.tmp
+*.rsp
+*.pgc
+*.pgd
+*.meta
+*.tlog
+*.manifest
+*.res
+*.pch
+*.exp
+*.idb
+*.rep
+*.xdc
+*.pdb
+*_manifest.rc
+*.bsc
+*.sbr
+*.xml
+*.metagen
+*.bi
+*.ipch
+*.sdf
+*.opensdf
+*.lastbuildstate
+*.log
+plugin/visualc/Win16Plugin/Debug/
+plugin/visualc/Win16Plugin/Release x86
+plugin/visualc/DosPlugin/Debug/
+plugin/visualc/DosPlugin/Release x86
+visualc_net/Debug
+visualc_net/Release x86 Console
+visualc_net/Release x86 NoConsole/
+visualc_net/dist
+visualc_net/ipch
+
