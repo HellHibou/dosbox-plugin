@@ -79,7 +79,7 @@
       <AdditionalIncludeDirectories>$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <PostBuildEvent>
-      <Command>copy /Y "..\..\src\DosPlugin\DosPlugin.ico" "$(SolutionDir)\dist\$(TargetName)-debug.ico"</Command>
+      <Command>post-build.bat "$(SolutionDir)dist" $(TargetName) debug</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release x86|Win32'">
@@ -109,7 +109,7 @@
       <AdditionalIncludeDirectories>$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <PostBuildEvent>
-      <Command>copy /Y "..\..\src\DosPlugin\DosPlugin.ico" "$(SolutionDir)\dist\$(TargetName)-x86.ico"</Command>
+      <Command>post-build.bat "$(SolutionDir)dist" $(TargetName) x86</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>

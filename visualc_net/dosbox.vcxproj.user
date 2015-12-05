@@ -1,0 +1,14 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <ShowAllFiles>false</ShowAllFiles>
+    <LocalDebuggerCommand Condition="'$(Configuration)|$(Platform)'=='Release x86 Console|Win32'">.\dist\dosbox-x86-console.exe</LocalDebuggerCommand>
+    <LocalDebuggerCommand Condition="'$(Configuration)|$(Platform)'=='Release x64 Console|Win32'">.\dist\dosbox-x64-console.exe</LocalDebuggerCommand>
+    <LocalDebuggerCommand Condition="'$(Configuration)|$(Platform)'=='Release x86 NoConsole|Win32'">.\dist\dosbox-x86-noconsole.exe</LocalDebuggerCommand>
+    <DebuggerFlavor Condition="'$(Configuration)|$(Platform)'=='Release x86 Console|Win32'">WindowsLocalDebugger</DebuggerFlavor>
+    <DebuggerFlavor Condition="'$(Configuration)|$(Platform)'=='Release x64 Console|Win32'">WindowsLocalDebugger</DebuggerFlavor>
+    <DebuggerFlavor Condition="'$(Configuration)|$(Platform)'=='Release x86 NoConsole|Win32'">WindowsLocalDebugger</DebuggerFlavor>
+    <LocalDebuggerCommand Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">.\dist\dosbox-debug.exe</LocalDebuggerCommand>
+    <DebuggerFlavor Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">WindowsLocalDebugger</DebuggerFlavor>
+  </PropertyGroup>
+</Project>

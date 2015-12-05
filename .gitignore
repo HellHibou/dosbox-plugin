@@ -42,3 +42,5 @@ visualc_net/Release x86 NoConsole/
 visualc_net/dist
 visualc_net/ipch
 
+*.aps
+*.suo
