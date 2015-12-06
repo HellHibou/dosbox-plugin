@@ -19,15 +19,28 @@ LIBRARY_API int VMPLUGIN_PostInit(vm::type::VirtualMachine * vm, void * myInstan
 
 	const char * application = vm->getParameter("application");
 	setAppIcon(vm, vm->getParameter("plugin"));
+	const char * winDir=vm->getParameter("windir");
+	const char * exit = vm->getParameter("exit");
 
-	if (application == NULL) { vm->sendCommand("win"); }
+	if (winDir != NULL || winDir[0] != 0x00) 
+	{ 
+		char * cmd = (char*)malloc (strlen(winDir) + 17);
+		sprintf(cmd, "SET PATH=%s;%%PATH%%", winDir);
+		vm->sendCommand(cmd);
+		sprintf(cmd, "SET WINDIR=%s", winDir);
+		vm->sendCommand(cmd);
+		free(cmd);
+	}
+
+	if (application == NULL) { vm->sendCommand("WIN"); }
 	else
 	{ 
 		/////////////////////////////////////////////////////////////////////////////////////////////////
 		// Launch application
 		/////////////////////////////////////////////////////////////////////////////////////////////////
+		
 		struct stat buffer;
-
+		
 		if (stat (application, &buffer) != 0)
 		{
 			char * msg = (char *)malloc(strlen(application) + 32);
@@ -39,7 +52,7 @@ LIBRARY_API int VMPLUGIN_PostInit(vm::type::VirtualMachine * vm, void * myInstan
 			vm->sendCommand("exit");
 			return VM_NO_ERROR;
 		}
-
+		
 		char * dosPath;
 		dosPath = toMappedDosPath(instance, application);
 
@@ -70,27 +83,34 @@ LIBRARY_API int VMPLUGIN_PostInit(vm::type::VirtualMachine * vm, void * myInstan
 			sprintf(dosPath, "%c:%s", instance->tmpAppDrive, appCmd);
 		}
 
-		char * appCmd = dosPath;
-		char * ptr = dosPath;
+		char * path = (char *) malloc (strlen (dosPath) + 30);
+		const char *useRunExit=vm->getParameter("use-runexit");
+		strcpy(path, "WIN ");
 
-		while(*ptr != '\0')
+		if (useRunExit != NULL && strcmpi(useRunExit, "true") == 0) 
 		{
-			if ((*ptr == '/' || *ptr == '\\')) { appCmd = ptr; }
-			ptr++;
+			strcat(path, "RUNEXIT "); 
+			const char * param = vm->getParameter("exit-no-prompt");
+			if (param != NULL && strcmpi(param, "true") == 0) {
+				strcat(path, "/NOCONFIRM ");
+			}
+
+			param = vm->getParameter("application-window");
+			if (param != NULL){
+				if (strcmpi(param, "MINIMIZED") == 0) {
+					strcat(path, "/MIN ");
+				} else if (strcmpi(param, "MAXIMIZED") == 0) {
+					strcat(path, "/MAX ");
+				}
+			}
 		}
 
-		*appCmd = '\0';
-		appCmd ++;
-
-		char * path = (char *) malloc (strlen (dosPath) + 8);
-		sprintf(path, "win %s", appCmd);
+		strcat(path, dosPath);
 		vm->sendCommand(path);
-		free(path);
 		free (dosPath);
 	}
-	
-	const char * exit = vm->getParameter("exit");
-	if (exit != NULL && strcmp(exit, "true") == 0)
+		
+	if (exit != NULL && strcmpi(exit, "true") == 0)
 	{ vm->sendCommand("exit"); }
 	else
 	{

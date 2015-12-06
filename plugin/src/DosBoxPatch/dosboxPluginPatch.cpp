@@ -100,7 +100,11 @@ void DosBoxPluginManager::preInit(Config * config)
 	vm.getParameter = VM_getParameter;
 
 	config->AddSection_line("plugin", &DosBox_initParameter);
-
+	MSG_Add("PLUGIN_CONFIGFILE_HELP",
+		"Add plugin configuration's parameters there.\n"
+		"plugin: Plugin's path to load or leave blank; you can use -plugin 'PLUGIN' in command line to define this parameter.\n"
+	);
+	
 	properties.clear();
 
 	std::vector<std::string> vector;

@@ -49,8 +49,6 @@ title: Title to set to DosBox's window.
 
 application: Full system path of application to launch or leave empty. 
 
-pause-before-exit: true or false, false by default. If true and exit = true, pause after application's execution and before exit. 
-
 exit: true or false, false by default. If true, exit DosBox after application's execution. Use -exit in command line.
 
 iso: Full system path of iso image to mount.
@@ -77,3 +75,21 @@ DosPlugin only
 ===============
 
 short-intro: true or false If true, show short intro, if false or not defined, show DosBox intro.
+
+pause-before-exit: true or false, false by default. If true and exit = true, pause after application's execution and before exit. 
+
+
+Win16Plugin only
+=================
+
+windir: Windows directory path into virtual machine (ex: C:\WINDOWS).
+
+use-runexit: true or false. If true, use runexit.exe to launch application and exit windows at end of application.
+             RUNEXIT.EXE must be copied into Windows 3.1 directory.
+
+exit-no-prompt: true or false. If true and use-runexit = true, exit Windows without prompt at end of application's execution.
+
+application-window: Status of application's window of the application to launch.
+                    minimized: Start application minimized.
+					maximized: Start application maximized.
+                    default:   Start application with default size. 					

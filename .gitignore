@@ -32,6 +32,11 @@ Thumbs.db
 *.opensdf
 *.lastbuildstate
 *.log
+*.~*
+*.bak
+*.err
+*.aps
+*.suo
 plugin/visualc/Win16Plugin/Debug/
 plugin/visualc/Win16Plugin/Release x86
 plugin/visualc/DosPlugin/Debug/
@@ -41,6 +46,3 @@ visualc_net/Release x86 Console
 visualc_net/Release x86 NoConsole/
 visualc_net/dist
 visualc_net/ipch
-
-*.aps
-*.suo

@@ -213,12 +213,12 @@ char * toMappedDosPath(Instance * instance, const char * winPath)
 			char * shortPath = (char*) malloc(shortPathSize);
 			GetShortPathName(winPath, shortPath, shortPathSize);
 			char * retVal = (char*) malloc(strlen(shortPath+shortMapSize) + 5);
-			sprintf(retVal, "%c:%s", 'A'+boucle, shortPath+shortMapSize);
+			sprintf(retVal, "%c:\\%s", 'A' + boucle, shortPath + shortMapSize);
 			free(shortPath);
 #else
 			int pathSize = strlen(instance->driveMap[boucle]);
 			char * retVal = (char*) malloc(strlen (winPath) - pathSize + 5);
-			sprintf(retVal, "%c:%s", 'A'+boucle, winPath+pathSize);
+			sprintf(retVal, "%c:\%s", 'A' + boucle, winPath+pathSize);
 #endif
 			return retVal;
 		}

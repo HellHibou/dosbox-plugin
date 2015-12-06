@@ -3,8 +3,14 @@ Microsoft Visual Studio Solution File, Format Version 11.00
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "dosbox", "dosbox.vcxproj", "{337CCCC2-7814-E5B3-8A45-512BC18DE688}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DosPlugin", "..\plugin\visualc\DosPlugin\DosPlugin.vcxproj", "{128688D9-5FB2-40AD-B8D0-9A7229DC8B3A}"
+	ProjectSection(ProjectDependencies) = postProject
+		{337CCCC2-7814-E5B3-8A45-512BC18DE688} = {337CCCC2-7814-E5B3-8A45-512BC18DE688}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Win16Plugin", "..\plugin\visualc\Win16Plugin\Plugin.vcxproj", "{F2786AA4-3AEE-480B-912E-9ABC00068D14}"
+	ProjectSection(ProjectDependencies) = postProject
+		{337CCCC2-7814-E5B3-8A45-512BC18DE688} = {337CCCC2-7814-E5B3-8A45-512BC18DE688}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

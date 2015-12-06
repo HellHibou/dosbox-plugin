@@ -1,0 +1,28 @@
+/* Executable version information */
+VS_VERSION_INFO VERSIONINFO LOADONCALL MOVEABLE DISCARDABLE 
+FILEVERSION 1,0,0,0
+PRODUCTVERSION 1,0,0,0
+FILEFLAGS 0
+{
+ BLOCK "StringFileInfo"
+ {
+  BLOCK "080904E4"
+  {
+   VALUE "CompanyName", "©2015 Hell Hibou\0"
+   VALUE "FileDescription", "Win16 command line application launcher\0"
+   VALUE "FileVersion", "1.0.0.0\0"
+   VALUE "InternalName", "RunExit\0"
+   VALUE "LegalCopyright", "©2015 Hell Hibou\0"
+   VALUE "OriginalFilename", "RunExit.exe\0"
+   VALUE "ProductName", "Win16 RunExit\0"
+   VALUE "ProductVersion", "1.0.0.0\0"
+  }
+
+ }
+
+ BLOCK "VarFileInfo"
+ {
+  VALUE "Translation", 0x809, 1252
+ }
+
+}
