@@ -128,26 +128,29 @@ void DosBoxPluginManager::preInit(Config * config) {
 	properties.clear();
 	std::vector<std::string> vector;
 	config->cmdline->FillVector(vector);
-	
+
 	for (int boucle = 0; boucle < vector.size(); boucle++) { 
 		const char * arg;
 		arg = vector[boucle].c_str();
-		if (arg[0] != '-') break;
-		if (strcmp(arg, "-plugin") == 0) {
+		if (strcmp(arg, "-conf") == 0) { boucle++; }
+		else if (strcmp(arg, "-c") == 0) { boucle++; }
+		else if (strcmp(arg, "-plugin") == 0) {
 			std::string plugin;
 			config->cmdline->FindString("-plugin", plugin, true);
 			if (plugin.length() > 0) {
 				properties.set("plugin", vector[boucle+1].c_str(), true);
 				boucle++;
 			}
-			
 		}
 		else if (strcmp(arg, "-exit") == 0) { properties.set("exit", "true"); }
 		else if (((strncmp(arg, "-X-", 3) == 0) || (strncmp(arg, "-x-", 3) == 0)) && arg[3] != 0x00) {
 			properties.parse(vector[boucle], true);
 		}
+		else if (arg[0] != '-') break;
 	}
 
+	int id = 1;
+	std::string cmd;
 	DosBoxPluginManager::status = PRE_INITIALIZED;
 }
 
