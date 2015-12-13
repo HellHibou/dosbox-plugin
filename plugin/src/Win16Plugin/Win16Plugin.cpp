@@ -2,7 +2,7 @@
 #include <sys/stat.h>
 #include "../CommonPlugin/plugin_common.hpp"
 
-extern const char PLUGIN_INTRO [] = "Win16Plugin by Hell Hibou";
+extern const char PLUGIN_INTRO [] = "Win16 Plugin version SVN\nCopyright 2015 Hell Hibou";
 
 #ifdef _MSC_VER
 	#pragma warning(disable:4996)

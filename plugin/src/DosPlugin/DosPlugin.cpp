@@ -2,7 +2,7 @@
 #include <sys/stat.h>
 #include "../CommonPlugin/plugin_common.hpp"
 
-extern const char PLUGIN_INTRO [] = "DosPlugin by Hell Hibou";
+extern const char PLUGIN_INTRO [] = "Dos Plugin version SVN\nCopyright 2015 Hell Hibou";
 
 LIBRARY_API int VMPLUGIN_PostInit(vm::type::VirtualMachine * vm, void * myInstance)
 {

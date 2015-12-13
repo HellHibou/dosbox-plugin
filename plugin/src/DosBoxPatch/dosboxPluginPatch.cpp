@@ -180,58 +180,50 @@ void DosBoxPluginManager::postInit(DOS_Shell * myShell) {
 
 		if (plugin->getClassInitError() == VM_NO_ERROR)	{
 			DosBoxPluginManager::properties.set("plugin", plugin->getLibraryPath(), true);
-			printf("Plugin '");
-			printf(plugin->getLibraryPath());
-			printf("' loaded.\n");
+			LOG_MSG("Plugin '%s' loaded.", plugin->getLibraryPath());
 			plugin->preInit();
 		}
 		else {
-			printf("Plugin initialisation error: ");
-
 			switch(plugin->getClassInitError()) {
 				case VM_ERROR_LIBRARY_NOT_FOUND:
-					printf("Library '");
-					printf(pluginPath);
-					printf("' not found.\n");
+					LOG_MSG("Plugin initialisation error: Library '%s' not found.", pluginPath);
 					break;
 
 				case VM_ERROR_UNSUPPORTED_LIBRARY:
-					printf("Library '");
-					printf(pluginPath);
-					printf("' is not supported.\n");
+					printf("Plugin initialisation error: Library '%s' is not supported.", pluginPath);
 					break;
 
 				case VM_ERROR_NULL_POINTER_EXCEPTION: 
-					printf("Null pointer exception\n");
+					LOG_MSG("Plugin initialisation error: Null pointer exception.");
 					break;
 
 				case VM_ERROR_BAD_STRUCT_SIZE:        
-					printf("Bad structure size\n");
+					LOG_MSG("Plugin initialisation error: Bad structure size.");
 					break;
 
 				case VM_ERROR_BAD_PARAMETER_VALUE:    
-					printf("Bad parameter value\n");
+					LOG_MSG("Plugin initialisation error: Bad parameter value.");
 					break;
 
 				case VM_ERROR_UNSUPPORTED_VM_NAME:   
-					printf("Unsupported virtual machine\n");
+					LOG_MSG("Plugin initialisation error: Unsupported virtual machine.");
 					break;
 
 				case VM_ERROR_UNSUPPORTED_VM_VERSION:
-					printf("Unsupported virtual machine version\n");
+					LOG_MSG("Plugin initialisation error: Unsupported virtual machine version.");
 					break;
 
 				case VM_ERROR_UNSUPPORTED_OPERATION:  
-					printf("Unsupported operation\n");
+					LOG_MSG("Plugin initialisation error: Unsupported operation.");
 					break;
 
 				case VM_ERROR_UNSUPPORTED_COMMAND:   
-					printf("Unsupported command\n");
+					LOG_MSG("Plugin initialisation error: Unsupported command.");
 					break;
 
 				case VM_UNKNOWN_ERROR:   
 				default:
-					printf ("Unknow error");
+					LOG_MSG ("Plugin initialisation error: Unknow error.");
 			}
 		}
 	}
@@ -249,7 +241,7 @@ void DosBoxPluginManager::unload() {
 	if (plugin != NULL)	{ 
 		delete plugin;
 		plugin = NULL;
-		printf("Plugin unloaded.\n");
+		LOG_MSG("Plugin unloaded.");
 	}
 
 	properties.clear(); 
@@ -267,7 +259,7 @@ int DosBoxPluginManager::VM_sendCommand (const char * args, ...) {
 	strncpy (cmd, args, CMD_MAXLINE);
 
 #ifdef _DEBUG
-	printf("Plugin send command : %s\n", args);
+	LOG_MSG("Plugin send command : %s", args);
 #endif
 
 	shell->call=true;
@@ -300,7 +292,7 @@ int DosBoxPluginManager::VM_logMessage (int messageType, const char * message) {
 			break;
 
 		case VMHOST_LOG_DEBUG:
-			LOG_MSG(message);
+			LOG_MSG("%s", message);
 			break;
 	}
 #endif
