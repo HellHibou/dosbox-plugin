@@ -25,16 +25,40 @@ const char * DosBoxPluginManager::windowTitle = NULL;
 
 DosBoxPluginManager::Properties::~Properties() { clear(); }
 
-void DosBoxPluginManager::Properties::set(const char * key, const char * value, bool final)
-{
-	for(std::list<Property *>::iterator prop = properties.begin(); prop != properties.end(); prop++)
-	{
+void DosBoxPluginManager::Properties::parse (std::string line, bool cmdLine) {
+	if (cmdLine) {
+		if (line.length() < 3) return;
+		if (strcmpi (line.substr(0,3).data(), "-x-") != 0) return;
+		line = line.substr(3,line.length()-1); 
+	}
+
+	std::string::size_type loc = line.find('=');
+	if (loc == std::string::npos) { 
+		if (cmdLine) { set(line.data(), "true", true); } 
+		return;
+	}
+
+	std::string key = line.substr(0,loc);
+	size_t first = key.find_first_not_of(' ');
+	size_t last = key.find_last_not_of(' ');
+	key = key.substr(first, (last-first+1));
+	if (!cmdLine && key[0] == '#') { return; }
+
+	std::string val = line.substr(loc + 1);
+	first = val.find_first_not_of(' ');
+	last = val.find_last_not_of(' ');
+	val = val.substr(first, (last-first+1));
+	if (val.length() > 1 && val[0] == '"' && val [val.length()-1] == '"') { val = val.substr(1, val.length()-2); }
+	if (key.length() > 0) { set(key.data(), val.data(), cmdLine); }
+}
+
+void DosBoxPluginManager::Properties::set(const char * key, const char * value, bool final) {
+	for(std::list<Property *>::iterator prop = properties.begin(); prop != properties.end(); prop++) {
 		if (stricmp(prop._Ptr->_Myval->key, key) == 0) {
 			if (prop._Ptr->_Myval->value[0] == 0x01 && ! final) { return; }
 			if (prop._Ptr->_Myval->value != NULL) { free (prop._Ptr->_Myval->value); }
 			
-			if (value == NULL) 
-			{ 
+			if (value == NULL) { 
 				properties.erase(prop);
 				return;
 			}
@@ -48,8 +72,7 @@ void DosBoxPluginManager::Properties::set(const char * key, const char * value, 
 		}
 	}
 
-	if(key != NULL && value != NULL)
-	{
+	if(key != NULL && value != NULL) {
 		Property * prop = (Property*) malloc(sizeof(Property));
 		prop->key = (char*) malloc (strlen(key)+1);
 		strcpy(prop->key, key);
@@ -64,8 +87,7 @@ void DosBoxPluginManager::Properties::set(const char * key, const char * value, 
 
 const char * DosBoxPluginManager::Properties::get(const char * key)
 {
-	for(std::list<Property *>::iterator prop = properties.begin(); prop != properties.end(); prop++)
-	{
+	for(std::list<Property *>::iterator prop = properties.begin(); prop != properties.end(); prop++) {
 		if (stricmp(prop._Ptr->_Myval->key, key) == 0) 
 		{ return prop._Ptr->_Myval->value+1; }
 	}
@@ -75,8 +97,7 @@ const char * DosBoxPluginManager::Properties::get(const char * key)
 
 void DosBoxPluginManager::Properties::clear()
 {
-	for(std::list<Property *>::iterator prop = properties.begin(); prop != properties.end(); prop++)
-	{
+	for(std::list<Property *>::iterator prop = properties.begin(); prop != properties.end(); prop++) {
 		free(prop._Ptr->_Myval->key);
 		if (prop._Ptr->_Myval->value != NULL) { free(prop._Ptr->_Myval); }
 	}
@@ -84,8 +105,7 @@ void DosBoxPluginManager::Properties::clear()
 	properties.clear();
 }
 
-void DosBoxPluginManager::preInit(Config * config)
-{
+void DosBoxPluginManager::preInit(Config * config) {
 	vmInfo.structSize = sizeof (vm::type::VirtualMachineInfo);
 	vmInfo.name = "DOSBOX";
 	vmInfo.vm_version_major = 0;
@@ -106,111 +126,69 @@ void DosBoxPluginManager::preInit(Config * config)
 	);
 	
 	properties.clear();
-
 	std::vector<std::string> vector;
 	config->cmdline->FillVector(vector);
-
-	for (int boucle = 0; boucle < vector.size(); boucle++) 
-	{ 
+	
+	for (int boucle = 0; boucle < vector.size(); boucle++) { 
 		const char * arg;
 		arg = vector[boucle].c_str();
-		if (strcmp(arg, "-plugin") == 0) 
-		{
-			if (boucle+1 < vector.size()) 
-			{
+		if (arg[0] != '-') break;
+		if (strcmp(arg, "-plugin") == 0) {
+			std::string plugin;
+			config->cmdline->FindString("-plugin", plugin, true);
+			if (plugin.length() > 0) {
 				properties.set("plugin", vector[boucle+1].c_str(), true);
 				boucle++;
 			}
+			
 		}
 		else if (strcmp(arg, "-exit") == 0) { properties.set("exit", "true"); }
-		else if (((strncmp(arg, "-X-", 3) == 0) || (strncmp(arg, "-x-", 3) == 0)) && arg[3] != 0x00) 
-		{
-			if (boucle+1 < vector.size())
-			{ 
-				const char * arg2 = vector[boucle+1].c_str();
-				if (arg2[0] == '"') 
-				{
-					arg2++;
-					if (arg2[0] != 0x00 && (arg2[1] != 0x00))
-					{
-						int idx = strlen(arg2)-1;
-						if (arg2[idx] == '\"') { (char)arg2[idx] = 0x00; }
-					}
-				}
-				if (arg2[0] != 0x00 && arg2[0] != '-')
-				{ properties.set(arg+3, arg2, true); }
-				else
-				{ properties.set(arg+3, NULL, true); }
-				boucle++;
-			}
-			else { properties.set(arg+3, NULL, true); }
+		else if (((strncmp(arg, "-X-", 3) == 0) || (strncmp(arg, "-x-", 3) == 0)) && arg[3] != 0x00) {
+			properties.parse(vector[boucle], true);
 		}
 	}
 
 	DosBoxPluginManager::status = PRE_INITIALIZED;
 }
 
-void DosBoxPluginManager::DosBox_initParameter(Section* mySec) 
-{
+void DosBoxPluginManager::DosBox_initParameter(Section* mySec) {
 	Section_line * sec = static_cast<Section_line *> (mySec);
 	std::string data = sec->data;
 
-	for (unsigned int i = 0; i < data.length();i++)
-	{ if (data[i] == '\r') { data[i] = '\n'; } }
+	for (unsigned int i = 0; i < data.length();i++) { 
+		if (data[i] == '\r') { data[i] = '\n'; } }
 
 	size_t pos = 0;
 	std::string line;
 
-	while ((pos = data.find("\n")) != std::string::npos) 
-	{
+	while ((pos = data.find("\n")) != std::string::npos) {
 		line = data.substr(0, pos);
 		for (unsigned int i = 0; i < pos;i++) { if (line[i] == '\n') { line[i] = ' '; } }
-
-		std::string::size_type loc = line.find('=');
-		if(loc == std::string::npos) return;
-
-		std::string key = line.substr(0,loc);
-		size_t first = key.find_first_not_of(' ');
-		size_t last = key.find_last_not_of(' ');
-		key = key.substr(first, (last-first+1));
-		if (key[0] == '#') { return; }
-
-		std::string val = line.substr(loc + 1);
-		first = val.find_first_not_of(' ');
-		last = val.find_last_not_of(' ');
-		val = val.substr(first, (last-first+1));
-
+		properties.parse(line, false);
 		data.erase(0, pos + 1);
-		if (key.length() < 1) { continue; }
-		properties.set(key.data(), val.data());
 	}
 }
 
-void DosBoxPluginManager::postInit(DOS_Shell * myShell)
-{
+void DosBoxPluginManager::postInit(DOS_Shell * myShell) {
 	if (DosBoxPluginManager::status >= POST_INITIALIZED) return;
 
 	const char *pluginPath = DosBoxPluginManager::properties.get("plugin");
 	shell = myShell;
 	if (pluginPath == NULL || pluginPath[0] == 0x00) { plugin = NULL; }
-	else
-	{
+	else {
 		plugin = new vm::Plugin(pluginPath, &vm);
 
-		if (plugin->getClassInitError() == VM_NO_ERROR)
-		{
+		if (plugin->getClassInitError() == VM_NO_ERROR)	{
 			DosBoxPluginManager::properties.set("plugin", plugin->getLibraryPath(), true);
 			printf("Plugin '");
 			printf(plugin->getLibraryPath());
 			printf("' loaded.\n");
 			plugin->preInit();
 		}
-		else
-		{
+		else {
 			printf("Plugin initialisation error: ");
 
-			switch(plugin->getClassInitError())
-			{
+			switch(plugin->getClassInitError()) {
 				case VM_ERROR_LIBRARY_NOT_FOUND:
 					printf("Library '");
 					printf(pluginPath);
@@ -257,20 +235,18 @@ void DosBoxPluginManager::postInit(DOS_Shell * myShell)
 			}
 		}
 	}
+
 	DosBoxPluginManager::status = PRE_INITIALIZED;
 }
 
-void DosBoxPluginManager::start()
-{
+void DosBoxPluginManager::start() {
 	if (plugin == NULL || DosBoxPluginManager::status >= STARTED) return;
 	plugin->postInit();
 	DosBoxPluginManager::status = STARTED;
 }
 
-void DosBoxPluginManager::unload()
-{ 
-	if (plugin != NULL)
-	{ 
+void DosBoxPluginManager::unload() { 
+	if (plugin != NULL)	{ 
 		delete plugin;
 		plugin = NULL;
 		printf("Plugin unloaded.\n");
@@ -281,11 +257,10 @@ void DosBoxPluginManager::unload()
 	DosBoxPluginManager::status = NOT_LOADED;
 }
 
-const vm::type::VirtualMachineInfo DosBoxPluginManager::VM_getVmInfo ()
-{ return DosBoxPluginManager::vmInfo; }
+const vm::type::VirtualMachineInfo DosBoxPluginManager::VM_getVmInfo () { 
+	return DosBoxPluginManager::vmInfo; }
 
-int DosBoxPluginManager::VM_sendCommand (const char * args, ...)
-{
+int DosBoxPluginManager::VM_sendCommand (const char * args, ...) {
 	if (args == NULL) { return VM_ERROR_NULL_POINTER_EXCEPTION; }
 	char cmd [CMD_MAXLINE];
 	memset(cmd, '\0', CMD_MAXLINE-1);
@@ -301,8 +276,7 @@ int DosBoxPluginManager::VM_sendCommand (const char * args, ...)
 	return VM_NO_ERROR;
 }
 
-int DosBoxPluginManager::VM_setWindowTitle (const char * title)
-{ 
+int DosBoxPluginManager::VM_setWindowTitle (const char * title) { 
 	if (title == NULL) { windowTitle = NULL; }
 	else if (strlen(title) == 0) { windowTitle = NULL; }
 	else { windowTitle = title; }
@@ -310,11 +284,9 @@ int DosBoxPluginManager::VM_setWindowTitle (const char * title)
 	return VM_NO_ERROR;
 }
 
-int DosBoxPluginManager::VM_logMessage (int messageType, const char * message)
-{
+int DosBoxPluginManager::VM_logMessage (int messageType, const char * message) {
 #ifdef WIN32
-	switch (messageType)
-	{
+	switch (messageType) {
 		case VMHOST_LOG_ERROR:
 			MessageBox(NULL, message, "DosBox Plugin" ,MB_ICONERROR|MB_OK);
 			break;
@@ -336,26 +308,21 @@ int DosBoxPluginManager::VM_logMessage (int messageType, const char * message)
 	return VM_NO_ERROR;
 }
 
-int DosBoxPluginManager::VM_setWindowIcon  (const unsigned char * icon, int width, int height, int bits) 
-{ 
+int DosBoxPluginManager::VM_setWindowIcon  (const unsigned char * icon, int width, int height, int bits) { 
 	if (icon == NULL) { GFX_SetIcon(); }
 	if (width != height) { return VM_ERROR_BAD_PARAMETER_VALUE; }
 	SDL_Surface* logo;
 	unsigned char * icon32 = NULL;
 	
 	/* SDL only support 32x32 icon, other size is bugged. */
-	if (width != 32) 
-	{
+	if (width != 32) {
 		int bytes = bits/8;
 		float ratio = width;  ratio /= 32;
 		icon32 = (unsigned char *) malloc(32 * 32 * bytes);
 
-		if(width < 32)
-		{
-			for (int boucleHeight = 0; boucleHeight < 16; boucleHeight++)
-			{
-				for (int boucleWidth = 0; boucleWidth < 16; boucleWidth++)
-				{
+		if(width < 32) {
+			for (int boucleHeight = 0; boucleHeight < 16; boucleHeight++) {
+				for (int boucleWidth = 0; boucleWidth < 16; boucleWidth++) {
 					int index1 = ((boucleHeight * 16) + boucleWidth)  * bytes;
 					int index2 = ((boucleHeight * 32 * (1/ratio)) + boucleWidth * (1/ratio)) * bytes;
 					memcpy(icon32+index2,       icon+index1, bytes);
@@ -366,12 +333,9 @@ int DosBoxPluginManager::VM_setWindowIcon  (const unsigned char * icon, int widt
 				memcpy(icon32+index+(32*bytes), icon32+index, (32*bytes));
 			}
 		}
-		else
-		{
-			for (int boucleHeight = 0; boucleHeight < 32; boucleHeight++)
-			{
-				for (int boucleWidth = 0; boucleWidth < 32; boucleWidth++)
-				{
+		else {
+			for (int boucleHeight = 0; boucleHeight < 32; boucleHeight++) {
+				for (int boucleWidth = 0; boucleWidth < 32; boucleWidth++) {
 					int index1 = ((ceil(boucleHeight*ratio) * width) + ceil(boucleWidth*ratio) ) * bytes + bytes;
 					int index2 = ((boucleHeight * 32) + boucleWidth ) * bytes;
 					memcpy(icon32+index2,       icon+index1, bytes);
@@ -384,8 +348,7 @@ int DosBoxPluginManager::VM_setWindowIcon  (const unsigned char * icon, int widt
 		height = 32;
 	}
 
-	switch (bits)
-	{
+	switch (bits) {
 #if WORDS_BIGENDIAN
 		case 24:
 			logo = SDL_CreateRGBSurfaceFrom((void*)icon,width,height,bits,(width * 3),0xff000000,0x00ff0000,0x0000ff00,0x00000000);
@@ -417,5 +380,6 @@ int DosBoxPluginManager::VM_setWindowIcon  (const unsigned char * icon, int widt
 	return VM_NO_ERROR; 
 }
 
-const char * DosBoxPluginManager::VM_getParameter (const char * parameter)
-{ return properties.get(parameter); }
+const char * DosBoxPluginManager::VM_getParameter (const char * parameter) { 
+	return properties.get(parameter); 
+}

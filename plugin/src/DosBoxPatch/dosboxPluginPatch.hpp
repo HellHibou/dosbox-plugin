@@ -32,6 +32,7 @@ private:
 	public:
 		~Properties();
 		void set (const char * key, const char * value, bool final = false);
+		void parse (std::string line, bool config);
 		const char * get(const char * key);
 		void clear();
 	};

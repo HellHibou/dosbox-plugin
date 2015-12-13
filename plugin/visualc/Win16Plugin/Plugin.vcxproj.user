@@ -6,7 +6,7 @@
     <LocalDebuggerCommandArguments>-plugin "$(SolutionDir)\dist\$(TargetName)-debug.dll"</LocalDebuggerCommandArguments>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release x86|Win32'">
-    <LocalDebuggerCommand>$(SolutionDir)dist\dosbox-x86.exe</LocalDebuggerCommand>
+    <LocalDebuggerCommand>$(SolutionDir)dist\dosbox-x86-noconsole.exe</LocalDebuggerCommand>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
     <LocalDebuggerCommandArguments>-plugin "$(SolutionDir)\dist\$(TargetName)-x86.dll"</LocalDebuggerCommandArguments>
   </PropertyGroup>

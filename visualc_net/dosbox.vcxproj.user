@@ -10,5 +10,7 @@
     <DebuggerFlavor Condition="'$(Configuration)|$(Platform)'=='Release x86 NoConsole|Win32'">WindowsLocalDebugger</DebuggerFlavor>
     <LocalDebuggerCommand Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">.\dist\dosbox-debug.exe</LocalDebuggerCommand>
     <DebuggerFlavor Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">WindowsLocalDebugger</DebuggerFlavor>
+    <LocalDebuggerCommandArguments Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    </LocalDebuggerCommandArguments>
   </PropertyGroup>
 </Project>

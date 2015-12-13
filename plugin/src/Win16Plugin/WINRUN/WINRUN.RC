@@ -11,10 +11,10 @@ FILEFLAGS 0
    VALUE "CompanyName", "©2015 Hell Hibou\0"
    VALUE "FileDescription", "Win16 command line application launcher\0"
    VALUE "FileVersion", "1.0.0.0\0"
-   VALUE "InternalName", "RunExit\0"
+   VALUE "InternalName", "WinRun\0"
    VALUE "LegalCopyright", "©2015 Hell Hibou\0"
-   VALUE "OriginalFilename", "RunExit.exe\0"
-   VALUE "ProductName", "Win16 RunExit\0"
+   VALUE "OriginalFilename", "WinRun.exe\0"
+   VALUE "ProductName", "Win16 WinRun\0"
    VALUE "ProductVersion", "1.0.0.0\0"
   }
 

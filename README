@@ -84,12 +84,12 @@ Win16Plugin only
 
 windir: Windows directory path into virtual machine (ex: C:\WINDOWS).
 
-use-runexit: true or false. If true, use runexit.exe to launch application and exit windows at end of application.
-             RUNEXIT.EXE must be copied into Windows 3.1 directory.
+use-winrun: true or false. If true, use WINRUN.EXE  to launch application.
+             WINRUN.EXE must be copied into Windows 3.1 directory.
 
-exit-no-prompt: true or false. If true and use-runexit = true, exit Windows without prompt at end of application's execution.
+exit-no-prompt: true or false. If true and use-winrun = true, exit Windows without prompt at end of application's execution.
 
-application-window: Status of application's window of the application to launch.
+application-window: Status of application's window of the application to launch (use-winrun must be set to true).
                     minimized: Start application minimized.
-					maximized: Start application maximized.
+                    maximized: Start application maximized.
                     default:   Start application with default size. 					

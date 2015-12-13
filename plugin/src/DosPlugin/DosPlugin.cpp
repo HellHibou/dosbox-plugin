@@ -1,7 +1,8 @@
-
 #include <string.h>
 #include <sys/stat.h>
 #include "../CommonPlugin/plugin_common.hpp"
+
+extern const char PLUGIN_INTRO [] = "DosPlugin by Hell Hibou";
 
 LIBRARY_API int VMPLUGIN_PostInit(vm::type::VirtualMachine * vm, void * myInstance)
 {

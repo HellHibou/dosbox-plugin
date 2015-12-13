@@ -1,4 +1,4 @@
-#define VERSION "SVN-Plugin"
+#define VERSION "SVN"
 
 /* Define to 1 to enable internal debugger, requires libcurses */
 #define C_DEBUG 0

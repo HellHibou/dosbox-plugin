@@ -15,6 +15,7 @@
 	#pragma warning(disable:4996)
 #endif
 
+extern const char PLUGIN_INTRO [];
 
 //////////////////////////////////////////////////////////////////////////////////////
 
@@ -213,12 +214,16 @@ char * toMappedDosPath(Instance * instance, const char * winPath)
 			char * shortPath = (char*) malloc(shortPathSize);
 			GetShortPathName(winPath, shortPath, shortPathSize);
 			char * retVal = (char*) malloc(strlen(shortPath+shortMapSize) + 5);
-			sprintf(retVal, "%c:\\%s", 'A' + boucle, shortPath + shortMapSize);
+			sprintf(retVal, "%c:", 'A' + boucle);
+			if (*(shortPath+shortMapSize) != '\\') { strcat(retVal, "\\"); }
+			strcat(retVal, shortPath + shortMapSize);
 			free(shortPath);
 #else
 			int pathSize = strlen(instance->driveMap[boucle]);
 			char * retVal = (char*) malloc(strlen (winPath) - pathSize + 5);
-			sprintf(retVal, "%c:\%s", 'A' + boucle, winPath+pathSize);
+			sprintf(retVal, "%c:", 'A' + boucle);
+			if (*(winPath+shortMapSize) != '\\') { strcat(retVal, "\\"); }
+			strcat(retVal, shortPath + shortMapSize);
 #endif
 			return retVal;
 		}
@@ -365,6 +370,9 @@ LIBRARY_API int VMPLUGIN_PreInit(vm::type::VirtualMachine * vm, void * myInstanc
 	if (vm->structSize < sizeof(vm::type::VirtualMachine)) { return VM_ERROR_BAD_STRUCT_SIZE; }
 	Instance * instance = (Instance*)myInstance;
 
+	vm->logMessage(VMHOST_LOG_DEBUG, "---");
+	vm->logMessage(VMHOST_LOG_DEBUG, PLUGIN_INTRO);
+	vm->logMessage(VMHOST_LOG_DEBUG, "---");
 	vm->sendCommand("echo off");
 	vm->setWindowTitle(vm->getParameter("title"));
 
@@ -423,19 +431,33 @@ LIBRARY_API int VMPLUGIN_PreInit(vm::type::VirtualMachine * vm, void * myInstanc
 	if (systemRoot == NULL) { instance->tmpAppDrive = 'C'; }
 	else
 	{
-		MapDevice(vm, instance, "mount %c \"%s\" -label SYSTEM > NUL", 'C', systemRoot);
-		vm->sendCommand("C:");
+		struct stat buffer;
 
-		if (instance->tmpAppDrive == '\0')
-		{
-			instance->tmpAppDrive = 'Y';
-			while ((instance->driveMap['A' - instance->tmpAppDrive] == NULL) && ( instance->tmpAppDrive >= 'A'))
-			{ instance->tmpAppDrive--; }
+		if (stat (systemRoot, &buffer) != 0) 
+		{ 
+			char * msg = (char *)malloc(strlen(systemRoot)+25);
+			sprintf(msg, "Directory \"%s\" not found.", systemRoot);
+			vm->logMessage(VMHOST_LOG_ERROR, msg);
+			free(msg);
+		} else if ((buffer.st_mode & _S_IFDIR) == 0) {
+			char * msg = (char *)malloc(strlen(systemRoot)+25);
+			sprintf(msg, "\"%s\" is not a directory.", systemRoot);
+			vm->logMessage(VMHOST_LOG_ERROR, msg);
+			free(msg);
+		} else {
+			MapDevice(vm, instance, "mount %c \"%s\" -label SYSTEM > NUL", 'C', systemRoot);
+			vm->sendCommand("C:");
 
-			if (instance->tmpAppDrive < 'A') { instance->tmpAppDrive = 'C'; }
+			if (instance->tmpAppDrive == '\0')
+			{
+				instance->tmpAppDrive = 'Y';
+				while ((instance->driveMap['A' - instance->tmpAppDrive] == NULL) && ( instance->tmpAppDrive >= 'A'))
+				{ instance->tmpAppDrive--; }
+
+				if (instance->tmpAppDrive < 'A') { instance->tmpAppDrive = 'C'; }
+			}
 		}
 	}
-
 
 	// Auto-mount drives
 	char autoMountFlags;
