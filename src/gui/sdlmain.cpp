@@ -318,7 +318,7 @@ void GFX_SetTitle(Bit32s cycles,Bits frameskip,bool paused){
 	}
 	
 	if(paused) strcat(title," - PAUSED");
-	SDL_WM_SetCaption(title,VERSION);
+	SDL_WM_SetCaption(title, NULL);
 	free(title);
 }
 
@@ -1912,9 +1912,8 @@ static void erasemapperfile() {
 	exit(0);
 }
 
-
 //extern void UI_Init(void);
-int main(int argc, char* argv[]) {
+int main(int argc, char* argv[]) {	
 	try {
 		CommandLine com_line(argc,argv);
 		Config myconf(&com_line);
@@ -1930,7 +1929,7 @@ int main(int argc, char* argv[]) {
 		if(control->cmdline->FindExist("-resetconf")) eraseconfigfile();
 		if(control->cmdline->FindExist("-erasemapper")) erasemapperfile();
 		if(control->cmdline->FindExist("-resetmapper")) erasemapperfile();
-		
+
 		/* Can't disable the console with debugger enabled */
 #if defined(WIN32) && !(C_DEBUG)
 	#if !(_WINDOWS) 
@@ -1944,11 +1943,7 @@ int main(int argc, char* argv[]) {
 			setbuf(stderr, NULL);					/* No buffering */
 		} else
 	#else // If not compile in console mode, don't show console by default
-		if (!control->cmdline->FindExist("-console")){
-		 		fclose(stdin);
-				fclose(stdout);
-				fclose(stderr);
-		} else
+		if (control->cmdline->FindExist("-console"))
 	#endif
 		{
 			if (AllocConsole()) {

@@ -14,5 +14,7 @@
     </LocalDebuggerCommandArguments>
     <LocalDebuggerCommandArguments Condition="'$(Configuration)|$(Platform)'=='Release x86 NoConsole|Win32'">
     </LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments Condition="'$(Configuration)|$(Platform)'=='Release x86 Console|Win32'">
+    </LocalDebuggerCommandArguments>
   </PropertyGroup>
 </Project>
