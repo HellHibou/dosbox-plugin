@@ -129,28 +129,47 @@ void DosBoxPluginManager::preInit(Config * config) {
 	std::vector<std::string> vector;
 	config->cmdline->FillVector(vector);
 
-	for (int boucle = 0; boucle < vector.size(); boucle++) { 
+		for (int boucle = 0; boucle < vector.size(); boucle++) 
+	{ 
 		const char * arg;
 		arg = vector[boucle].c_str();
-		if (strcmp(arg, "-conf") == 0) { boucle++; }
-		else if (strcmp(arg, "-c") == 0) { boucle++; }
-		else if (strcmp(arg, "-plugin") == 0) {
-			std::string plugin;
-			config->cmdline->FindString("-plugin", plugin, true);
-			if (plugin.length() > 0) {
+		if (strcmp(arg, "-plugin") == 0) 
+		{
+			if (boucle+1 < vector.size()) 
+			{
 				properties.set("plugin", vector[boucle+1].c_str(), true);
 				boucle++;
 			}
 		}
 		else if (strcmp(arg, "-exit") == 0) { properties.set("exit", "true"); }
-		else if (((strncmp(arg, "-X-", 3) == 0) || (strncmp(arg, "-x-", 3) == 0)) && arg[3] != 0x00) {
-			properties.parse(vector[boucle], true);
+		else if (((strncmp(arg, "-X-", 3) == 0) || (strncmp(arg, "-x-", 3) == 0)) && arg[3] != 0x00) 
+		{
+			if (boucle+1 < vector.size())
+			{ 
+				const char * arg2 = vector[boucle+1].c_str();
+				if (arg2[0] == '"') 
+				{
+					arg2++;
+					if (arg2[0] != 0x00 && (arg2[1] != 0x00))
+					{
+						int idx = strlen(arg2)-1;
+						if (arg2[idx] == '\"') { (char)arg2[idx] = 0x00; }
+					}
+				}
+				if (arg2[0] != 0x00 && arg2[0] != '-')
+				{ 
+					properties.set(arg+3, arg2, true); 
+					std::string str;
+					config->cmdline->FindString(arg, str, true);				
+				}
+				else
+				{ properties.set(arg+3, NULL, true); }
+				boucle++;
+			}
+			else { properties.set(arg+3, NULL, true); }
 		}
-		else if (arg[0] != '-') break;
 	}
 
-	int id = 1;
-	std::string cmd;
 	DosBoxPluginManager::status = PRE_INITIALIZED;
 }
 

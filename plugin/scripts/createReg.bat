@@ -3,7 +3,7 @@
 set DOSBOXDIR=
 call :setdosboxdir %0
 
-set DOSBOX=%DOSBOXDIR%\\dosbox-x86.exe
+set DOSBOX=%DOSBOXDIR%\\dosbox-x86-noconsole.exe
 
 set DOSCONFIG=%DOSBOXDIR%\\dosbox-dos.conf
 set WIN16CONFIG=%DOSBOXDIR%\\dosbox-win16.conf
@@ -94,14 +94,14 @@ echo @="%APP_DOS_WINDOWED%">> %REG%
 echo "icon"="%DOSBOXDIR%\\dos.ico">> %REG%
 echo. >> %REG%
 echo [HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\Launcher.dos\command]>> %REG%
-echo @="\"%DOSBOX%\" -conf \"%DOSCONFIG%\" -x-application=\"%%1\"">> %REG%
+echo @="\"%DOSBOX%\" -conf \"%DOSCONFIG%\" -x-application \"%%1\"">> %REG%
 echo. >> %REG%
 echo [HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\Launcher.dos.fullscreen]>> %REG%
 echo @="%APP_DOS_FULLSCREEN%">> %REG%
 echo "icon"="%DOSBOXDIR%\\dos.ico">> %REG%
 echo. >> %REG%
 echo [HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\Launcher.dos.fullscreen\command]>> %REG%
-echo @="\"%DOSBOX%\" -fullscreen -conf \"%DOSCONFIG%\" -x-application=\"%%1\"">> %REG%
+echo @="\"%DOSBOX%\" -fullscreen -conf \"%DOSCONFIG%\" -x-application \"%%1\"">> %REG%
 echo.>> %REG%
 goto :EOF
 
@@ -111,14 +111,14 @@ echo @="%APP_WIN16_WINDOWED%">> %REG%
 echo "icon"="%DOSBOXDIR%\\win16.ico">> %REG%
 echo.>> %REG%
 echo [HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\Launcher.win16\command]>> %REG%
-echo @="\"%DOSBOX%\" -conf \"%WIN16CONFIG%\" -x-application=\"%%1\"">> %REG%
+echo @="\"%DOSBOX%\" -conf \"%WIN16CONFIG%\" -x-application \"%%1\"">> %REG%
 echo.>> %REG%
 echo [HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\Launcher.win16.fullscreen]>> %REG%
 echo @="%APP_WIN16_FULLSCREEN%">> %REG%
 echo "icon"="%DOSBOXDIR%\\win16.ico">> %REG%
 echo.>> %REG%
 echo [HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\Launcher.win16.fullscreen\command]>> %REG%
-echo @="\"%DOSBOX%\" -fullscreen -conf \"%WIN16CONFIG%\" -x-application=\"%%1\"">> %REG%
+echo @="\"%DOSBOX%\" -fullscreen -conf \"%WIN16CONFIG%\" -x-application \"%%1\"">> %REG%
 goto :EOF
 
 

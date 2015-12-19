@@ -84,7 +84,7 @@ Win16Plugin only
 
 windir: Windows directory path into virtual machine (ex: C:\WINDOWS).
 
-use-winrun: true or false. If true, use WINRUN.EXE  to launch application.
+use-winrun: true or false. If true, use WINRUN.EXE to launch application.
              WINRUN.EXE must be copied into Windows 3.1 directory.
 
 exit-no-prompt: true or false. If true and use-winrun = true, exit Windows without prompt at end of application's execution.
@@ -93,3 +93,22 @@ application-window: Status of application's window of the application to launch 
                     minimized: Start application minimized.
                     maximized: Start application maximized.
                     default:   Start application with default size. 					
+
+
+Windows shell integration
+==========================
+
+You can run DOS / Win16 application from Window's explorer, for this :
+
+1. Copy createReg.bat, dos.ico, dosbox-dos.conf, dosbox-win16.conf, win16.ico into DosBox directory;
+
+2. Launch createReg.bat fro generate .reg files;
+
+3. Launch install-dos.reg, install-win16.reg or install-all.reg for install context menu for DOS application, 
+   Windows 16 application or both.
+
+4. Edit dosbox-dos.conf / dosbox-win16.conf file.
+
+To launch application using DosBox, right-click into .bat, .com or .exe, select "Launch as ..." and select a target.
+
+Launch uninstall.reg to uninstall shell integration.
