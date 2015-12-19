@@ -44,13 +44,13 @@ LIBRARY_API int VMPLUGIN_PostInit(vm::type::VirtualMachine * vm, void * myInstan
 			pauseAtEnd = DEFAULT_pause_before_exit; 
 			vm->logMessage(VMHOST_LOG_WARNING,  "Bad value of attribute 'pause-before-exit'"); 
 		}
-
+		
 		if (!setAppIcon(vm, application))
 		{ 
 			//vm->setWindowIcon(MSDOS_ICON, 32, 32, 32); 
 			setAppIcon(vm, vm->getParameter("plugin"));
 		} 
-
+		
 		/////////////////////////////////////////////////////////////////////////////////////////////////
 		// Launch application
 		/////////////////////////////////////////////////////////////////////////////////////////////////

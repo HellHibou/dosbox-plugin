@@ -17,11 +17,7 @@ index 43df32f..d323230 100644
 -		} else {
 +		} else
 +	#else // If not compile in console mode, don't show console by default
-+		if (!control->cmdline->FindExist("-console")){
-+		 		fclose(stdin);
-+				fclose(stdout);
-+				fclose(stderr);
-+		} else
++		if (control->cmdline->FindExist("-console"))
 +	#endif
 +		{
  			if (AllocConsole()) {
