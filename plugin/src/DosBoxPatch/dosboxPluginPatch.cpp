@@ -8,20 +8,27 @@
 
 #include <SDL.h>
 #include "control.h"
+#include "inout.h"
 #include "../lib/vm_host.h"
 #include "dosboxPluginPatch.hpp"
 
 extern void GFX_SetTitle(Bit32s cycles,Bits frameskip,bool paused);
 extern void GFX_SetIcon() ;
-extern DOS_Block dos;
+extern      DOS_Block dos;
+extern      IO_WriteHandler * io_writehandlers[3][IO_MAX];
+extern      IO_ReadHandler  * io_readhandlers [3][IO_MAX];
+extern void IO_WriteDefault(Bitu port,Bitu val,Bitu iolen);
+extern Bitu IO_ReadDefault(Bitu port,Bitu iolen);
 
-vm::type::VirtualMachine      DosBoxPluginManager::vm;
-vm::type::VirtualMachineInfo  DosBoxPluginManager::vmInfo;
-vm::Plugin *                  DosBoxPluginManager::plugin;
-DOS_Shell  *                  DosBoxPluginManager::shell;
-DosBoxPluginManager::Properties DosBoxPluginManager::properties;
-DosBoxPluginManager::Status DosBoxPluginManager::status = NOT_LOADED;
-const char * DosBoxPluginManager::windowTitle = NULL;
+vm::type::VirtualMachine         DosBoxPluginManager::vm;
+vm::type::VirtualMachineInfo     DosBoxPluginManager::vmInfo;
+vm::Plugin *                     DosBoxPluginManager::plugin;
+DOS_Shell  *                     DosBoxPluginManager::shell;
+DosBoxPluginManager::Properties  DosBoxPluginManager::properties;
+vm::type::InterruptHandle        DosBoxPluginManager::interrupts [256];
+DosBoxPluginManager::Status      DosBoxPluginManager::status = NOT_LOADED;
+const char *                     DosBoxPluginManager::windowTitle = NULL;
+vm::type::MouseMoveEventHandle   DosBoxPluginManager::mouseMoveHnd = NULL; 
 
 DosBoxPluginManager::Properties::~Properties() { clear(); }
 
@@ -105,7 +112,11 @@ void DosBoxPluginManager::Properties::clear()
 	properties.clear();
 }
 
+///////////////////////////////////////////////////////////////////////////////
+
 void DosBoxPluginManager::preInit(Config * config) {
+	memset(interrupts, 0x00, sizeof(interrupts));
+
 	vmInfo.structSize = sizeof (vm::type::VirtualMachineInfo);
 	vmInfo.name = "DOSBOX";
 	vmInfo.vm_version_major = 0;
@@ -118,6 +129,12 @@ void DosBoxPluginManager::preInit(Config * config) {
 	vm.sendCommand = VM_sendCommand;
 	vm.logMessage = VM_logMessage;
 	vm.getParameter = VM_getParameter;
+	vm.setInterruptHandle = VM_setInterruptHandle;
+	vm.setMouseMoveEventHandle = VM_setMouseMoveEventHandle;
+	vm.setIoReadHandle = VM_setIoReadHandle;
+	vm.setIOutputHandle = VM_setIoOutputHandle;
+	vm.getIoInputHandle = VM_getIoInputHandle;
+	vm.getIoOutputHandle = VM_getIoOutputHandle;
 
 	config->AddSection_line("plugin", &DosBox_initParameter);
 	MSG_Add("PLUGIN_CONFIGFILE_HELP",
@@ -129,7 +146,7 @@ void DosBoxPluginManager::preInit(Config * config) {
 	std::vector<std::string> vector;
 	config->cmdline->FillVector(vector);
 
-		for (int boucle = 0; boucle < vector.size(); boucle++) 
+	for (int boucle = 0; boucle < vector.size(); boucle++) 
 	{ 
 		const char * arg;
 		arg = vector[boucle].c_str();
@@ -193,7 +210,6 @@ void DosBoxPluginManager::DosBox_initParameter(Section* mySec) {
 
 void DosBoxPluginManager::postInit(DOS_Shell * myShell) {
 	if (DosBoxPluginManager::status >= POST_INITIALIZED) return;
-
 	const char *pluginPath = DosBoxPluginManager::properties.get("plugin");
 	shell = myShell;
 	if (pluginPath == NULL || pluginPath[0] == 0x00) { plugin = NULL; }
@@ -272,7 +288,8 @@ void DosBoxPluginManager::unload() {
 }
 
 const vm::type::VirtualMachineInfo DosBoxPluginManager::VM_getVmInfo () { 
-	return DosBoxPluginManager::vmInfo; }
+	return DosBoxPluginManager::vmInfo; 
+}
 
 int DosBoxPluginManager::VM_sendCommand (const char * args, ...) {
 	if (args == NULL) { return VM_ERROR_NULL_POINTER_EXCEPTION; }
@@ -317,6 +334,8 @@ int DosBoxPluginManager::VM_logMessage (int messageType, const char * message) {
 			LOG_MSG("%s", message);
 			break;
 	}
+#else
+	LOG_MSG("%s", message);
 #endif
 
 	return VM_NO_ERROR;
@@ -396,4 +415,87 @@ int DosBoxPluginManager::VM_setWindowIcon  (const unsigned char * icon, int widt
 
 const char * DosBoxPluginManager::VM_getParameter (const char * parameter) { 
 	return properties.get(parameter); 
+}
+
+const vm::type::InterruptHandle DosBoxPluginManager::VM_setInterruptHandle(unsigned char intId, vm::type::InterruptHandle intHnd) {
+#ifdef _DEBUG
+	if (intHnd == NULL) {
+		LOG_MSG("Plugin : Interrupt 0x%x unset.", intId);
+	} else {
+		LOG_MSG("Plugin : Interrupt 0x%x set to handle 0x%x.", intId, intHnd);
+	}
+#endif
+
+	vm::type::InterruptHandle oldHnd = DosBoxPluginManager::interrupts[intId];
+	DosBoxPluginManager::interrupts[intId] = intHnd;
+	return oldHnd;
+}
+
+const vm::type::MouseMoveEventHandle DosBoxPluginManager::VM_setMouseMoveEventHandle (vm::type::MouseMoveEventHandle mHnd) {
+#ifdef _DEBUG
+	if (mHnd == NULL) {
+		LOG_MSG("Plugin : Unset mouse event handle.");
+	} else {
+		LOG_MSG("Plugin : Set mouse event handle.");
+	}
+#endif
+	vm::type::MouseMoveEventHandle retVal = DosBoxPluginManager::mouseMoveHnd;
+	DosBoxPluginManager::mouseMoveHnd = mHnd;
+	return retVal;
+}
+
+const vm::type::IoOutputHandle DosBoxPluginManager::VM_getIoOutputHandle (unsigned short port) {
+	return io_writehandlers[0][port];
+}
+
+int DosBoxPluginManager::VM_setIoOutputHandle (unsigned short port, vm::type::IoOutputHandle pHnd, unsigned char len) {
+#ifdef _DEBUG
+	if (pHnd == NULL) {
+		LOG_MSG("Plugin : Unset output port handle %i.", port);
+	} else {
+		LOG_MSG("Plugin : Set output port handle %i.", port);
+	}
+#endif
+
+	if (pHnd == NULL) { pHnd = IO_WriteDefault; }
+	switch(len) {
+		case 4:
+			io_writehandlers[2][port] = pHnd;
+		case 2:
+			io_writehandlers[1][port] = pHnd;
+		case 1:
+			io_writehandlers[0][port] = pHnd;
+			return VM_NO_ERROR;
+
+		default:
+			return VM_ERROR_BAD_PARAMETER_VALUE;
+	}
+}
+
+const vm::type::IoInputHandle DosBoxPluginManager::VM_getIoInputHandle (unsigned short port) {
+	return io_readhandlers[0][port];
+}
+
+int DosBoxPluginManager::VM_setIoReadHandle  (unsigned short port, vm::type::IoInputHandle  pHnd, unsigned char len) {
+#ifdef _DEBUG
+	if (pHnd == NULL) {
+		LOG_MSG("Plugin : Unset input port handle %xh.", port);
+	} else {
+		LOG_MSG("Plugin : Set input port handle %xh.", port);
+	}
+#endif
+
+	if (pHnd == NULL) { pHnd = IO_ReadDefault; }
+	switch(len) {
+		case 4:
+			io_readhandlers[2][port] = pHnd;
+		case 2:
+			io_readhandlers[1][port] = pHnd;
+		case 1:
+			io_readhandlers[0][port] = pHnd;
+			return VM_NO_ERROR;
+
+		default:
+			return VM_ERROR_BAD_PARAMETER_VALUE;
+	}
 }

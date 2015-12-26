@@ -30,6 +30,7 @@
 #include "paging.h"
 #include "lazyflags.h"
 #include "support.h"
+#include "../plugin/src/DosBoxPatch/dosboxPluginPatch.hpp"
 
 Bitu DEBUG_EnableDebugger(void);
 extern void GFX_SetTitle(Bit32s cycles ,Bits frameskip,bool paused);
@@ -546,6 +547,7 @@ Bit8u lastint;
 void CPU_Interrupt(Bitu num,Bitu type,Bitu oldeip) {
 	lastint=num;
 	FillFlags();
+	if (DosBoxPluginManager::interrupt(num)) return;
 #if C_DEBUG
 	switch (num) {
 	case 0xcd:

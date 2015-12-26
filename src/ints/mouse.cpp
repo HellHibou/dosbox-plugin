@@ -33,6 +33,8 @@
 #include "bios.h"
 #include "dos_inc.h"
 
+#include "../plugin/src/DosBoxPatch/dosboxPluginPatch.hpp"
+
 static Bitu call_int33,call_int74,int74_ret_callback,call_mouse_bd;
 static Bit16u ps2cbseg,ps2cbofs;
 static bool useps2callback,ps2callbackinit;

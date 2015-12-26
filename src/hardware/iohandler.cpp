@@ -37,7 +37,7 @@ static Bitu IO_ReadBlocked(Bitu /*port*/,Bitu /*iolen*/) {
 static void IO_WriteBlocked(Bitu /*port*/,Bitu /*val*/,Bitu /*iolen*/) {
 }
 
-static Bitu IO_ReadDefault(Bitu port,Bitu iolen) {
+Bitu IO_ReadDefault(Bitu port,Bitu iolen) {
 	switch (iolen) {
 	case 1:
 		LOG(LOG_IO,LOG_WARN)("Read from port %04X",port);

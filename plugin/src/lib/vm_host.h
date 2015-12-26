@@ -5,8 +5,6 @@
  * \version 0.1
  * \date 14/11/2015
  */
-
-
 #pragma once
 
 #define VMHOST_LOG_ERROR    1 /**< Error message level. */
@@ -31,25 +29,78 @@
 #define VM_UNKNOWN_ERROR                -999 /**< Unknow error. */
 #define VM_CUSTOM_VM_ERROR			   -1000 /**< First specific error code of virtual machine. */
 
-
 #ifdef __cplusplus
-	#define typedef
 	namespace vm { namespace type {
+#else
+	#define struct typedef struct
 #endif
+
+/**
+ * \brief CPU 32 bits register.
+ */
+typedef union Reg32 {
+	unsigned long  dword;
+	unsigned short word[2];
+	unsigned char  byte[4];
+} Reg32;
+
+/**
+* \brief Intel CPU registers.
+*/
+struct Regs {
+	Reg32 eax;
+	Reg32 ecx;
+	Reg32 edx;
+	Reg32 ebx;
+	Reg32 esp;
+	Reg32 ebp;
+	Reg32 esi;
+	Reg32 edi;
+	Reg32 eip;
+	unsigned char flags;
+};
+	
+/**
+ * \brief CPU interrupt handle.
+ * \param cpuRegs CPU registers.
+ */
+typedef bool (* InterruptHandle)(Regs * cpuRegs);	
+
+/**
+ * \brief Mouse moved event hanlde.
+ * \param x New X position of mouse pointer.
+ * \param y New Y position of mouse pointer.
+ */
+typedef void (* MouseMoveEventHandle)(int x, int y);
+
+/**
+ * \brief Port writer handle.
+ * \param port Port number.
+ * \param val Value to write.
+ * \param len Data size to write in bytes (1, 2 or 4).
+ */
+typedef void (* IoOutputHandle)(unsigned int port, unsigned int val, unsigned int len);
+
+/**
+ * \brief Port reader handle.
+ * \param port Port to read.
+ * \param len Data size to read in bytes (1, 2 or 4).
+ */
+typedef unsigned int (* IoInputHandle)(unsigned int port, unsigned int len);
 
 /**
  * \struct VirtualMachineInfo
  * \brief Virtual machine information structure.
  */
-typedef struct VirtualMachineInfo
+struct VirtualMachineInfo
 {
 	int    structSize;		 /**< = sizeof(VirtualMachineInfo). */
 	char * name;			 /**< Virtual machine name. */
 	int    vm_version_major; /**< Virtual machine major version number. */
 	int    vm_version_minor; /**< Virtual machine minor version number. */
-} ; 
+}; 
 
-typedef struct VirtualMachine
+struct VirtualMachine
 {
 	int  structSize; /**< = sizeof(VirtualMachine). */
 
@@ -93,13 +144,129 @@ typedef struct VirtualMachine
 
     /**
      * \brief Get a parameter for a plugin.
-     * \param Name of parameter.
+     * \param parameter Name of parameter.
      * \return Parameter's value or NULL;
      */
 	const char * (*getParameter) (const char * parameter);
-};
 
+	/**
+	 * \brief Set interrupt handle.
+	 * \param intId Interrupt number.
+	 * \param intHnd Interrupt handle.
+	 * \return Preview interrupt handle (can be null). 
+	 */
+    const InterruptHandle (*setInterruptHandle)(unsigned char intId, InterruptHandle intHnd);
+
+	/**
+	 * \brief Set mouse move handle.
+	 * \param mHnd Mouse move handle.
+	 * \return Preview mouse handle (can be null). 
+	 */
+	const MouseMoveEventHandle (*setMouseMoveEventHandle) (MouseMoveEventHandle mHnd);
+
+	/**
+	 * \brief Set port output handle.
+	 * \param port First port number to set.
+	 * \param pHnd Port output handle. 
+	 * \param len Number of port to set (1, 2 or 4).
+	 * \return Error code or VM_NO_ERROR if no error.
+	 */
+	int (*setIOutputHandle) (unsigned short port, IoOutputHandle pHnd, unsigned char len);
+
+	/**
+	 * \brief Get port output handle.
+	 * \param port Port number.
+	 * \return Port output handle.
+	 */
+	const IoOutputHandle (*getIoOutputHandle) (unsigned short port);
+
+	/**
+	 * \brief Set port input handle.
+	 * \param port First port number to set.
+	 * \param pHnd Port input handle or null if port > 65536, len <> 1, 2, 4 or pHnd = NULL.
+	 * \param len Number of port to set (1, 2 or 4).
+	 * \return Error code or VM_NO_ERROR if no error.
+	 */
+	int (*setIoReadHandle) (unsigned short port, IoInputHandle pHnd, unsigned char len);
+
+	/**
+	 * \brief Get port input handle.
+	 * \param port Port number.
+	 * \return Port input handle.
+	 */
+	const IoInputHandle (*getIoInputHandle) (unsigned short port);
+};
 #ifdef __cplusplus
-	}	}
-	#undef typedef
+	}
+
+	namespace reg {
+#endif
+		inline unsigned long EAX(vm::type::Regs reg) { return reg.eax.dword;   }
+		inline unsigned short AX(vm::type::Regs reg) { return reg.eax.word[0]; }
+		inline unsigned char  AL(vm::type::Regs reg) { return reg.eax.byte[0]; }
+		inline unsigned char  AH(vm::type::Regs reg) { return reg.eax.byte[1]; }
+
+		inline unsigned long EBX(vm::type::Regs reg) { return reg.ebx.dword;   }
+		inline unsigned short BX(vm::type::Regs reg) { return reg.ebx.word[0]; }
+		inline unsigned char  BL(vm::type::Regs reg) { return reg.ebx.byte[0]; }
+		inline unsigned char  BH(vm::type::Regs reg) { return reg.ebx.byte[1]; }
+
+		inline unsigned long ECX(vm::type::Regs reg) { return reg.ecx.dword;   }
+		inline unsigned short CX(vm::type::Regs reg) { return reg.ecx.word[0]; }
+		inline unsigned char  CL(vm::type::Regs reg) { return reg.ecx.byte[0]; }
+		inline unsigned char  CH(vm::type::Regs reg) { return reg.ecx.byte[1]; }
+
+		inline unsigned long EDX(vm::type::Regs reg) { return reg.edx.dword;   }
+		inline unsigned short DX(vm::type::Regs reg) { return reg.edx.word[0]; }
+		inline unsigned char  DL(vm::type::Regs reg) { return reg.edx.byte[0]; }
+		inline unsigned char  DH(vm::type::Regs reg) { return reg.edx.byte[1]; }
+
+		inline unsigned long ESP(vm::type::Regs reg) { return reg.esp.dword;   }
+		inline unsigned long EBP(vm::type::Regs reg) { return reg.ebp.dword;   }
+		inline unsigned long ESI(vm::type::Regs reg) { return reg.esi.dword;   }
+		inline unsigned long EDI(vm::type::Regs reg) { return reg.edi.dword;   }
+		inline unsigned long EIP(vm::type::Regs reg) { return reg.eip.dword;   }
+
+		inline unsigned short SP(vm::type::Regs reg) { return reg.esp.word[0]; }
+		inline unsigned short BP(vm::type::Regs reg) { return reg.ebp.word[0]; }
+		inline unsigned short SI(vm::type::Regs reg) { return reg.esi.word[0]; }
+		inline unsigned short DI(vm::type::Regs reg) { return reg.edi.word[0]; }
+		inline unsigned short IP(vm::type::Regs reg) { return reg.eip.word[0]; }
+
+
+		inline unsigned long EAX(vm::type::Regs *reg) { return reg->eax.dword;   }
+		inline unsigned short AX(vm::type::Regs *reg) { return reg->eax.word[0]; }
+		inline unsigned char  AL(vm::type::Regs *reg) { return reg->eax.byte[0]; }
+		inline unsigned char  AH(vm::type::Regs *reg) { return reg->eax.byte[1]; }
+
+		inline unsigned long EBX(vm::type::Regs *reg) { return reg->ebx.dword;   }
+		inline unsigned short BX(vm::type::Regs *reg) { return reg->ebx.word[0]; }
+		inline unsigned char  BL(vm::type::Regs *reg) { return reg->ebx.byte[0]; }
+		inline unsigned char  BH(vm::type::Regs *reg) { return reg->ebx.byte[1]; }
+
+		inline unsigned long ECX(vm::type::Regs *reg) { return reg->ecx.dword;   }
+		inline unsigned short CX(vm::type::Regs *reg) { return reg->ecx.word[0]; }
+		inline unsigned char  CL(vm::type::Regs *reg) { return reg->ecx.byte[0]; }
+		inline unsigned char  CH(vm::type::Regs *reg) { return reg->ecx.byte[1]; }
+
+		inline unsigned long EDX(vm::type::Regs *reg) { return reg->edx.dword;   }
+		inline unsigned short DX(vm::type::Regs *reg) { return reg->edx.word[0]; }
+		inline unsigned char  DL(vm::type::Regs *reg) { return reg->edx.byte[0]; }
+		inline unsigned char  DH(vm::type::Regs *reg) { return reg->edx.byte[1]; }
+
+		inline unsigned long ESP(vm::type::Regs *reg) { return reg->esp.dword;   }
+		inline unsigned long EBP(vm::type::Regs *reg) { return reg->ebp.dword;   }
+		inline unsigned long ESI(vm::type::Regs *reg) { return reg->esi.dword;   }
+		inline unsigned long EDI(vm::type::Regs *reg) { return reg->edi.dword;   }
+		inline unsigned long EIP(vm::type::Regs *reg) { return reg->eip.dword;   }
+
+		inline unsigned short SP(vm::type::Regs *reg) { return reg->esp.word[0]; }
+		inline unsigned short BP(vm::type::Regs *reg) { return reg->ebp.word[0]; }
+		inline unsigned short SI(vm::type::Regs *reg) { return reg->esi.word[0]; }
+		inline unsigned short DI(vm::type::Regs *reg) { return reg->edi.word[0]; }
+		inline unsigned short IP(vm::type::Regs *reg) { return reg->eip.word[0]; }
+#ifdef __cplusplus
+	}
+}
+	#undef struct
 #endif
