@@ -66,7 +66,7 @@ private:
 	static const vm::type::InterruptHandle      VM_setInterruptHandle (unsigned char intId, vm::type::InterruptHandle intHnd);
 	static const vm::type::MouseMoveEventHandle VM_setMouseMoveEventHandle (vm::type::MouseMoveEventHandle mHnd);
 	static int									VM_setIoOutputHandle (unsigned short port, vm::type::IoOutputHandle pHnd, unsigned char len);
-	static int									VM_setIoReadHandle   (unsigned short port, vm::type::IoInputHandle  pHnd, unsigned char len);
+	static int									VM_setIoInputHandle  (unsigned short port, vm::type::IoInputHandle  pHnd, unsigned char len);
 	static const vm::type::IoOutputHandle       VM_getIoOutputHandle (unsigned short port);
 	static const vm::type::IoInputHandle        VM_getIoInputHandle  (unsigned short port);
 

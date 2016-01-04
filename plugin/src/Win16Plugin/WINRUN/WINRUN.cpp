@@ -1,9 +1,15 @@
+/**
+ * \file WINRUN.cpp
+ * \brief Win16 command line application launcher.
+ * \author Jeremy Decker
+ * \version 0.1
+ * \date 14/11/2015
+ */
+
 #include <windows.h>
 #include <stdlib.h>
 #include <shellapi.h>
 #include <string.h>
-#include <dos.h>
-
 #include <stdio.h>
 
 const char * EXIT_APP_QUESTION = "Program terminated. Exit Windows ?";
@@ -16,39 +22,6 @@ char      confirmExit = TRUE;
 char      exitAtEnd = FALSE;
 
 int doExit(int returnCode = 0, char * errorMsg = NULL);
-
-int doExit(int returnCode, char * errorMsg)
-{
-	 if (timerHnd != NULL) KillTimer(NULL, timerHnd);
-	 if (exitAtEnd == FALSE) {
-        if (errorMsg != NULL) {
-				MessageBox(NULL, errorMsg, application, MB_ICONHAND | MB_OK);
-		  }
-	 } else if (confirmExit == TRUE) {
-		  if (errorMsg == NULL) {
-				if (MessageBox(NULL, EXIT_APP_QUESTION, application, MB_YESNO | MB_ICONQUESTION) == IDYES) {
-					 ExitWindows(0,0);
-				}
-		  } else {
-				char * msg = (char *) malloc(strlen(errorMsg) + strlen(EXIT_ERROR_QUESTION) + 1);
-				strcpy(msg, errorMsg);
-				strcat(msg, EXIT_ERROR_QUESTION);
-				if (MessageBox(NULL, msg, application, MB_YESNO | MB_ICONHAND) == IDYES) {
-					 ExitWindows(0,0);
-				}
-				free(msg);
-		  }
-	 } else {
-		  if (errorMsg != NULL) {
-				MessageBox(NULL, errorMsg, application, MB_ICONHAND | MB_OK);
-		  }
-
-		  ExitWindows(0,0);
-	 }
-
-	 exit (returnCode);
-	 return returnCode;
-}
 
 VOID CALLBACK timerFct(HWND hwnd, UINT uMsg, UINT id, DWORD dwTime) {
 	 if (GetModuleUsage (appHnd) == 0) { doExit(); }
@@ -186,3 +159,35 @@ int PASCAL WinMain (HINSTANCE hinst, HINSTANCE prev_inst, LPSTR cmdline, int cmd
 	 return doExit();
 }
 
+int doExit(int returnCode, char * errorMsg)
+{
+	 if (timerHnd != NULL) KillTimer(NULL, timerHnd);
+	 if (exitAtEnd == FALSE) {
+		  if (errorMsg != NULL) {
+				MessageBox(NULL, errorMsg, application, MB_ICONHAND | MB_OK);
+		  }
+	 } else if (confirmExit == TRUE) {
+		  if (errorMsg == NULL) {
+				if (MessageBox(NULL, EXIT_APP_QUESTION, application, MB_YESNO | MB_ICONQUESTION) == IDYES) {
+					 ExitWindows(0,0);
+				}
+		  } else {
+				char * msg = (char *) malloc(strlen(errorMsg) + strlen(EXIT_ERROR_QUESTION) + 1);
+				strcpy(msg, errorMsg);
+				strcat(msg, EXIT_ERROR_QUESTION);
+				if (MessageBox(NULL, msg, application, MB_YESNO | MB_ICONHAND) == IDYES) {
+					 ExitWindows(0,0);
+				}
+				free(msg);
+		  }
+	 } else {
+		  if (errorMsg != NULL) {
+				MessageBox(NULL, errorMsg, application, MB_ICONHAND | MB_OK);
+		  }
+
+		  ExitWindows(0,0);
+	 }
+
+	 exit (returnCode);
+	 return returnCode;
+}

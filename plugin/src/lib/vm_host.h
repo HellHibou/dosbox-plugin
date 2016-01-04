@@ -39,25 +39,25 @@
  * \brief CPU 32 bits register.
  */
 typedef union Reg32 {
-	unsigned long  dword;
-	unsigned short word[2];
-	unsigned char  byte[4];
+	unsigned long  dword;   /**< 32 bits register value. */
+	unsigned short word[2]; /**< 16 bits register value. */
+	unsigned char  byte[4]; /**< 8 bits register value. */
 } Reg32;
 
 /**
 * \brief Intel CPU registers.
 */
 struct Regs {
-	Reg32 eax;
-	Reg32 ecx;
-	Reg32 edx;
-	Reg32 ebx;
-	Reg32 esp;
-	Reg32 ebp;
-	Reg32 esi;
-	Reg32 edi;
-	Reg32 eip;
-	unsigned char flags;
+	Reg32 eax; /**< EAX CPU register. */
+	Reg32 ecx; /**< ECX CPU register. */
+	Reg32 edx; /**< EDX CPU register. */
+	Reg32 ebx; /**< EBX CPU register. */
+	Reg32 esp; /**< ESP CPU register. */
+	Reg32 ebp; /**< EBP CPU register. */
+	Reg32 esi; /**< ESI CPU register. */
+	Reg32 edi; /**< EDI CPU register. */
+	Reg32 eip; /**< EIP CPU register. */
+	unsigned char flags; /**< CPU flag register. */
 };
 	
 /**
@@ -171,7 +171,7 @@ struct VirtualMachine
 	 * \param len Number of port to set (1, 2 or 4).
 	 * \return Error code or VM_NO_ERROR if no error.
 	 */
-	int (*setIOutputHandle) (unsigned short port, IoOutputHandle pHnd, unsigned char len);
+	int (*setIoOutputHandle) (unsigned short port, IoOutputHandle pHnd, unsigned char len);
 
 	/**
 	 * \brief Get port output handle.
@@ -187,7 +187,7 @@ struct VirtualMachine
 	 * \param len Number of port to set (1, 2 or 4).
 	 * \return Error code or VM_NO_ERROR if no error.
 	 */
-	int (*setIoReadHandle) (unsigned short port, IoInputHandle pHnd, unsigned char len);
+	int (*setIoInputHandle) (unsigned short port, IoInputHandle pHnd, unsigned char len);
 
 	/**
 	 * \brief Get port input handle.
@@ -199,6 +199,9 @@ struct VirtualMachine
 #ifdef __cplusplus
 	}
 
+	/**
+	 * \brief Get registers values fucntions.
+	 */
 	namespace reg {
 #endif
 		inline unsigned long EAX(vm::type::Regs reg) { return reg.eax.dword;   }

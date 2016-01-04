@@ -131,8 +131,8 @@ void DosBoxPluginManager::preInit(Config * config) {
 	vm.getParameter = VM_getParameter;
 	vm.setInterruptHandle = VM_setInterruptHandle;
 	vm.setMouseMoveEventHandle = VM_setMouseMoveEventHandle;
-	vm.setIoReadHandle = VM_setIoReadHandle;
-	vm.setIOutputHandle = VM_setIoOutputHandle;
+	vm.setIoInputHandle = VM_setIoInputHandle;
+	vm.setIoOutputHandle = VM_setIoOutputHandle;
 	vm.getIoInputHandle = VM_getIoInputHandle;
 	vm.getIoOutputHandle = VM_getIoOutputHandle;
 
@@ -476,12 +476,12 @@ const vm::type::IoInputHandle DosBoxPluginManager::VM_getIoInputHandle (unsigned
 	return io_readhandlers[0][port];
 }
 
-int DosBoxPluginManager::VM_setIoReadHandle  (unsigned short port, vm::type::IoInputHandle  pHnd, unsigned char len) {
+int DosBoxPluginManager::VM_setIoInputHandle  (unsigned short port, vm::type::IoInputHandle  pHnd, unsigned char len) {
 #ifdef _DEBUG
 	if (pHnd == NULL) {
-		LOG_MSG("Plugin : Unset input port handle %xh.", port);
+		LOG_MSG("Plugin : Unset input port handle %Xh.", port);
 	} else {
-		LOG_MSG("Plugin : Set input port handle %xh.", port);
+		LOG_MSG("Plugin : Set input port handle %Xh.", port);
 	}
 #endif
 
@@ -499,3 +499,4 @@ int DosBoxPluginManager::VM_setIoReadHandle  (unsigned short port, vm::type::IoI
 			return VM_ERROR_BAD_PARAMETER_VALUE;
 	}
 }
+
