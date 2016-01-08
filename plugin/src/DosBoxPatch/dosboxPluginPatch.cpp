@@ -9,8 +9,13 @@
 #include <SDL.h>
 #include "control.h"
 #include "inout.h"
+#include "callback.h"
+#include "cpu.h"
 #include "../lib/vm_host.h"
 #include "dosboxPluginPatch.hpp"
+
+#define VM_VERSION_MAJOR 0
+#define VM_NAME "DOSBOX\0\0\0\0\0\0\0\0\0"
 
 extern void GFX_SetTitle(Bit32s cycles,Bits frameskip,bool paused);
 extern void GFX_SetIcon() ;
@@ -25,7 +30,6 @@ vm::type::VirtualMachineInfo     DosBoxPluginManager::vmInfo;
 vm::Plugin *                     DosBoxPluginManager::plugin;
 DOS_Shell  *                     DosBoxPluginManager::shell;
 DosBoxPluginManager::Properties  DosBoxPluginManager::properties;
-vm::type::InterruptHandle        DosBoxPluginManager::interrupts [256];
 DosBoxPluginManager::Status      DosBoxPluginManager::status = NOT_LOADED;
 const char *                     DosBoxPluginManager::windowTitle = NULL;
 vm::type::MouseMoveEventHandle   DosBoxPluginManager::mouseMoveHnd = NULL; 
@@ -115,12 +119,10 @@ void DosBoxPluginManager::Properties::clear()
 ///////////////////////////////////////////////////////////////////////////////
 
 void DosBoxPluginManager::preInit(Config * config) {
-	memset(interrupts, 0x00, sizeof(interrupts));
-
 	vmInfo.structSize = sizeof (vm::type::VirtualMachineInfo);
-	vmInfo.name = "DOSBOX";
-	vmInfo.vm_version_major = 0;
-	vmInfo.vm_version_minor = 74;	
+	vmInfo.vm_version_major = VM_VERSION_MAJOR;
+	vmInfo.vm_version_minor = VM_VirtualMachine_FCT_COUNT;
+	memcpy (&vmInfo.name, VM_NAME, VM_SIZEOF_VMNAME);
 
 	vm.structSize = sizeof(vm::type::VirtualMachine);
 	vm.getVmInfo = VM_getVmInfo;
@@ -146,7 +148,7 @@ void DosBoxPluginManager::preInit(Config * config) {
 	std::vector<std::string> vector;
 	config->cmdline->FillVector(vector);
 
-	for (int boucle = 0; boucle < vector.size(); boucle++) 
+	for (unsigned int boucle = 0; boucle < vector.size(); boucle++) 
 	{ 
 		const char * arg;
 		arg = vector[boucle].c_str();
@@ -216,53 +218,52 @@ void DosBoxPluginManager::postInit(DOS_Shell * myShell) {
 	else {
 		plugin = new vm::Plugin(pluginPath, &vm);
 
-		if (plugin->getClassInitError() == VM_NO_ERROR)	{
-			DosBoxPluginManager::properties.set("plugin", plugin->getLibraryPath(), true);
-			LOG_MSG("Plugin '%s' loaded.", plugin->getLibraryPath());
-			plugin->preInit();
-		}
-		else {
-			switch(plugin->getClassInitError()) {
-				case VM_ERROR_LIBRARY_NOT_FOUND:
-					LOG_MSG("Plugin initialisation error: Library '%s' not found.", pluginPath);
-					break;
+		switch(plugin->getClassInitError()) {
+			case VM_NO_ERROR:
+				DosBoxPluginManager::properties.set("plugin", plugin->getLibraryPath(), true);
+				LOG_MSG("Plugin '%s' loaded.", plugin->getLibraryPath());
+				plugin->preInit();
+				break;
 
-				case VM_ERROR_UNSUPPORTED_LIBRARY:
-					printf("Plugin initialisation error: Library '%s' is not supported.", pluginPath);
-					break;
+			case VM_ERROR_LIBRARY_NOT_FOUND:
+				LOG_MSG("Plugin initialisation error: Library '%s' not found.", pluginPath);
+				break;
 
-				case VM_ERROR_NULL_POINTER_EXCEPTION: 
-					LOG_MSG("Plugin initialisation error: Null pointer exception.");
-					break;
+			case VM_ERROR_UNSUPPORTED_LIBRARY:
+				printf("Plugin initialisation error: Library '%s' is not supported.", pluginPath);
+				break;
 
-				case VM_ERROR_BAD_STRUCT_SIZE:        
-					LOG_MSG("Plugin initialisation error: Bad structure size.");
-					break;
+			case VM_ERROR_NULL_POINTER_EXCEPTION: 
+				LOG_MSG("Plugin initialisation error: Null pointer exception.");
+				break;
 
-				case VM_ERROR_BAD_PARAMETER_VALUE:    
-					LOG_MSG("Plugin initialisation error: Bad parameter value.");
-					break;
+			case VM_ERROR_BAD_STRUCT_SIZE:        
+				LOG_MSG("Plugin initialisation error: Bad structure size.");
+				break;
 
-				case VM_ERROR_UNSUPPORTED_VM_NAME:   
-					LOG_MSG("Plugin initialisation error: Unsupported virtual machine.");
-					break;
+			case VM_ERROR_BAD_PARAMETER_VALUE:    
+				LOG_MSG("Plugin initialisation error: Bad parameter value.");
+				break;
 
-				case VM_ERROR_UNSUPPORTED_VM_VERSION:
-					LOG_MSG("Plugin initialisation error: Unsupported virtual machine version.");
-					break;
+			case VM_ERROR_UNSUPPORTED_VM_NAME:   
+				LOG_MSG("Plugin initialisation error: Unsupported virtual machine.");
+				break;
 
-				case VM_ERROR_UNSUPPORTED_OPERATION:  
-					LOG_MSG("Plugin initialisation error: Unsupported operation.");
-					break;
+			case VM_ERROR_UNSUPPORTED_VM_VERSION:
+				LOG_MSG("Plugin initialisation error: Unsupported virtual machine version.");
+				break;
 
-				case VM_ERROR_UNSUPPORTED_COMMAND:   
-					LOG_MSG("Plugin initialisation error: Unsupported command.");
-					break;
+			case VM_ERROR_UNSUPPORTED_OPERATION:  
+				LOG_MSG("Plugin initialisation error: Unsupported operation.");
+				break;
 
-				case VM_UNKNOWN_ERROR:   
-				default:
-					LOG_MSG ("Plugin initialisation error: Unknow error.");
-			}
+			case VM_ERROR_UNSUPPORTED_COMMAND:   
+				LOG_MSG("Plugin initialisation error: Unsupported command.");
+				break;
+
+			case VM_UNKNOWN_ERROR:   
+			default:
+				LOG_MSG ("Plugin initialisation error: Unknow error.");
 		}
 	}
 
@@ -287,8 +288,8 @@ void DosBoxPluginManager::unload() {
 	DosBoxPluginManager::status = NOT_LOADED;
 }
 
-const vm::type::VirtualMachineInfo DosBoxPluginManager::VM_getVmInfo () { 
-	return DosBoxPluginManager::vmInfo; 
+const vm::type::VirtualMachineInfo * DosBoxPluginManager::VM_getVmInfo () { 
+	return &DosBoxPluginManager::vmInfo; 
 }
 
 int DosBoxPluginManager::VM_sendCommand (const char * args, ...) {
@@ -316,8 +317,8 @@ int DosBoxPluginManager::VM_setWindowTitle (const char * title) {
 }
 
 int DosBoxPluginManager::VM_logMessage (int messageType, const char * message) {
-#ifdef WIN32
 	switch (messageType) {
+#ifdef WIN32
 		case VMHOST_LOG_ERROR:
 			MessageBox(NULL, message, "DosBox Plugin" ,MB_ICONERROR|MB_OK);
 			break;
@@ -329,14 +330,24 @@ int DosBoxPluginManager::VM_logMessage (int messageType, const char * message) {
 		case VMHOST_LOG_INFO:
 			MessageBox(NULL, message, "DosBox Plugin", MB_ICONEXCLAMATION|MB_OK);
 			break;
+#else
+		case VMHOST_LOG_ERROR:
+			LOG_MSG("Plugin ERROR : %s", message);
+			break;
+
+		case VMHOST_LOG_WARNING:
+			LOG_MSG("Plugin WARNING : %s", message);
+			break;
+
+		case VMHOST_LOG_INFO:
+			LOG_MSG("Plugin INFO : %s", message);
+			break;
+#endif
 
 		case VMHOST_LOG_DEBUG:
-			LOG_MSG("%s", message);
+			LOG_MSG("Plugin DEBUG : %s", message);
 			break;
 	}
-#else
-	LOG_MSG("%s", message);
-#endif
 
 	return VM_NO_ERROR;
 }
@@ -350,7 +361,7 @@ int DosBoxPluginManager::VM_setWindowIcon  (const unsigned char * icon, int widt
 	/* SDL only support 32x32 icon, other size is bugged. */
 	if (width != 32) {
 		int bytes = bits/8;
-		float ratio = width;  ratio /= 32;
+		float ratio = width; ratio /= 32;
 		icon32 = (unsigned char *) malloc(32 * 32 * bytes);
 
 		if(width < 32) {
@@ -417,7 +428,7 @@ const char * DosBoxPluginManager::VM_getParameter (const char * parameter) {
 	return properties.get(parameter); 
 }
 
-const vm::type::InterruptHandle DosBoxPluginManager::VM_setInterruptHandle(unsigned char intId, vm::type::InterruptHandle intHnd) {
+int DosBoxPluginManager::VM_setInterruptHandle(unsigned char intId, vm::type::InterruptHandle intHnd) {
 #ifdef _DEBUG
 	if (intHnd == NULL) {
 		LOG_MSG("Plugin : Interrupt 0x%x unset.", intId);
@@ -426,9 +437,10 @@ const vm::type::InterruptHandle DosBoxPluginManager::VM_setInterruptHandle(unsig
 	}
 #endif
 
-	vm::type::InterruptHandle oldHnd = DosBoxPluginManager::interrupts[intId];
-	DosBoxPluginManager::interrupts[intId] = intHnd;
-	return oldHnd;
+	int call_int=CALLBACK_Allocate();
+	CALLBACK_Setup(call_int,intHnd,CB_IRET,"Plugin interrupt");
+	RealSetVec(intId,CALLBACK_RealPointer(call_int));
+	return VM_NO_ERROR;
 }
 
 const vm::type::MouseMoveEventHandle DosBoxPluginManager::VM_setMouseMoveEventHandle (vm::type::MouseMoveEventHandle mHnd) {
@@ -479,9 +491,9 @@ const vm::type::IoInputHandle DosBoxPluginManager::VM_getIoInputHandle (unsigned
 int DosBoxPluginManager::VM_setIoInputHandle  (unsigned short port, vm::type::IoInputHandle  pHnd, unsigned char len) {
 #ifdef _DEBUG
 	if (pHnd == NULL) {
-		LOG_MSG("Plugin : Unset input port handle %Xh.", port);
+		LOG_MSG("Plugin : Unset input port handle 0x%X.", port);
 	} else {
-		LOG_MSG("Plugin : Set input port handle %Xh.", port);
+		LOG_MSG("Plugin : Set input port handle 0x%X.", port);
 	}
 #endif
 
@@ -499,4 +511,3 @@ int DosBoxPluginManager::VM_setIoInputHandle  (unsigned short port, vm::type::Io
 			return VM_ERROR_BAD_PARAMETER_VALUE;
 	}
 }
-

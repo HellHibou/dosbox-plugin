@@ -12,7 +12,6 @@
 #define VMHOST_LOG_INFO     3 /**< Information message level.*/
 #define VMHOST_LOG_DEBUG    4 /**< Debug message level.*/
 
-
 #define VM_ERROR_LIBRARY_NOT_FOUND       1 /**< Library not found. */
 #define VM_ERROR_UNSUPPORTED_LIBRARY     2 /**< Unsupported library. */
 #define VM_ERROR_LIBRARY				 3 /**< Bad library. */
@@ -26,8 +25,18 @@
 #define VM_ERROR_UNSUPPORTED_OPERATION    -6 /**< Unsupported operation. */
 #define VM_ERROR_UNSUPPORTED_COMMAND      -7 /**< Unsupported command. */
 #define VM_ERROR_COMMAND_FAILED           -8 /**< Command failed. */
+#define VM_ERROR_OVERFLOW                 -9 /**< Overflow. */
 #define VM_UNKNOWN_ERROR                -999 /**< Unknow error. */
 #define VM_CUSTOM_VM_ERROR			   -1000 /**< First specific error code of virtual machine. */
+
+#define VM_CALL_FLAG_16BITS   0
+#define VM_CALL_FLAG_32BITS   1
+#define VM_CALL_FLAG_C        0
+#define VM_CALL_FLAG_PASCAL   4
+
+#define VM_VirtualMachine_FCT_COUNT ((sizeof (vm::type::VirtualMachine) - sizeof(int)) / sizeof(void*)) /**< Number of functions'spointere into VirtualMachine structure. */
+#define VM_VirtualMachine_MINSIZE (sizeof(int) + sizeof(void*)) /**< Minimal size of VirtualMachine strcuture. */
+#define VM_SIZEOF_VMNAME 16 /**< Size of VirtualMachineInfo.name */
 
 #ifdef __cplusplus
 	namespace vm { namespace type {
@@ -62,9 +71,9 @@ struct Regs {
 	
 /**
  * \brief CPU interrupt handle.
- * \param cpuRegs CPU registers.
+ * \return 0 --> None ; 1--> Stop
  */
-typedef bool (* InterruptHandle)(Regs * cpuRegs);	
+typedef unsigned int (* InterruptHandle)();	
 
 /**
  * \brief Mouse moved event hanlde.
@@ -94,21 +103,21 @@ typedef unsigned int (* IoInputHandle)(unsigned int port, unsigned int len);
  */
 struct VirtualMachineInfo
 {
-	int    structSize;		 /**< = sizeof(VirtualMachineInfo). */
-	char * name;			 /**< Virtual machine name. */
-	int    vm_version_major; /**< Virtual machine major version number. */
-	int    vm_version_minor; /**< Virtual machine minor version number. */
+	int    structSize;		       /**< = sizeof(VirtualMachineInfo). */
+	int    vm_version_major;       /**< Virtual machine major version number. */
+	int    vm_version_minor;       /**< Virtual machine minor version number. = Number of functions into VirtualMachine's structure. */
+	char   name[VM_SIZEOF_VMNAME]; /**< Virtual machine name. */
 }; 
 
 struct VirtualMachine
 {
-	int  structSize; /**< = sizeof(VirtualMachine). */
+	int  structSize; /**< = sizeof(vm::type::VirtualMachine). */
 
     /**
 	 * \brief Get virtual machine informations.
 	 * \return Virtual machine informations
      */
-	const VirtualMachineInfo (*getVmInfo)      ();
+	const VirtualMachineInfo * (*getVmInfo) ();
 
     /**
 	 * \brief Set title of virtual machine's window.
@@ -153,9 +162,9 @@ struct VirtualMachine
 	 * \brief Set interrupt handle.
 	 * \param intId Interrupt number.
 	 * \param intHnd Interrupt handle.
-	 * \return Preview interrupt handle (can be null). 
+	 * \return Error code or VM_NO_ERROR if no error.
 	 */
-    const InterruptHandle (*setInterruptHandle)(unsigned char intId, InterruptHandle intHnd);
+    int (*setInterruptHandle)(unsigned char intId, InterruptHandle intHnd);
 
 	/**
 	 * \brief Set mouse move handle.

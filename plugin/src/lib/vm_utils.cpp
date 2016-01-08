@@ -42,10 +42,8 @@ namespace vm {
 				dataRead[readed-6] = val & 0xFF;
 				if (readed - 5 == dataToRead) {
 					this->onDataBlockReaded((void*)dataRead, dataToRead);
-					if (maxDataReadSize == dataToRead) {
-						readed = 0;
-						dataToRead = 0;
-					}
+					readed = 0;
+					dataToRead = 0;
 				}
 			} else if (readed < 4) {
 				if ((val & 0xFF) != magic [readed]) {

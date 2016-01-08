@@ -15,6 +15,9 @@
 	#pragma warning(disable:4996)
 #endif
 
+#define PLUGIN_MAJOR_VERSION 0
+#define VM_NAME "DOSBOX"
+
 extern const char PLUGIN_INTRO [];
 
 //////////////////////////////////////////////////////////////////////////////////////
@@ -326,8 +329,16 @@ bool setAppIcon( vm::type::VirtualMachine * vm, const char * application)
 
 LIBRARY_API int VMPLUGIN_CreateInstance(vm::type::VirtualMachine * vm, void * * myInstance)
 {
+	// Check VM.
 	if (vm == NULL) { return VM_ERROR_NULL_POINTER_EXCEPTION; }
-	if (vm->structSize < sizeof(vm::type::VirtualMachine)) { return VM_ERROR_BAD_STRUCT_SIZE; }
+	if (vm->structSize < VM_VirtualMachine_MINSIZE) { return VM_ERROR_BAD_STRUCT_SIZE; }
+	const vm::type::VirtualMachineInfo * info = vm->getVmInfo();
+	if (info == NULL) return VM_ERROR_NULL_POINTER_EXCEPTION;
+
+	// Check VM version
+	if (info->vm_version_minor < VM_VirtualMachine_FCT_COUNT) { return VM_ERROR_UNSUPPORTED_VM_VERSION; }
+	if (info->vm_version_major != PLUGIN_MAJOR_VERSION) { return VM_ERROR_UNSUPPORTED_VM_VERSION; }
+	if (strncmp (info->name, VM_NAME, VM_SIZEOF_VMNAME) != 0) { return VM_ERROR_UNSUPPORTED_VM_NAME; }
 
 	Instance * instance = (Instance*)malloc(sizeof(Instance));
 	for (int boucle = 0; boucle < 42; boucle++) { instance->driveMap[boucle] = NULL; }

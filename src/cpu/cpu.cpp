@@ -547,7 +547,6 @@ Bit8u lastint;
 void CPU_Interrupt(Bitu num,Bitu type,Bitu oldeip) {
 	lastint=num;
 	FillFlags();
-	if (DosBoxPluginManager::interrupt(num)) return;
 #if C_DEBUG
 	switch (num) {
 	case 0xcd:
