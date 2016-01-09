@@ -1,3 +1,11 @@
+/**
+ * \file vm_utils.cpp
+ * \brief Virtual machine's utility library.
+ * \author Jeremy Decker
+ * \version 0.1
+ * \date 04/01/2016
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include "vm_utils.hpp"

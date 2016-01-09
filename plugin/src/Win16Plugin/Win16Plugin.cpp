@@ -1,6 +1,7 @@
 #include <string.h>
 #include <sys/stat.h>
 #include "../CommonPlugin/plugin_common.hpp"
+#include "IntegrationHost.hpp"
 
 extern const char PLUGIN_INTRO [] = "Win16 Plugin version SVN\nCopyright 2015 Hell Hibou";
 
@@ -8,11 +9,32 @@ extern const char PLUGIN_INTRO [] = "Win16 Plugin version SVN\nCopyright 2015 He
 	#pragma warning(disable:4996)
 #endif
 
+static vm::IntegrationTool * integrationTool;
+
+static void mouseHnd(int x, int y) {
+	integrationTool->SetMousePos(x, y);
+}
+
+static void io_write(unsigned int port,unsigned int val, unsigned int iolen) { 
+	integrationTool->read(val, iolen);
+}
+
+static unsigned int io_read(unsigned int port, unsigned int iolen) { 
+	return integrationTool->write(iolen);
+}
+
 LIBRARY_API int VMPLUGIN_PostInit(vm::type::VirtualMachine * vm, void * myInstance) {
 	if (vm == NULL) { return VM_ERROR_NULL_POINTER_EXCEPTION; }
 	if (vm->structSize < sizeof(vm::type::VirtualMachine)) { return VM_ERROR_BAD_STRUCT_SIZE; }
 	Instance * instance = (Instance*)myInstance;
 	
+	// Integration tool ////////////////////////
+	integrationTool = new vm::IntegrationTool(vm);
+	vm->setIoOutputHandle (INTEGRATION_TOOL_IO_PORT, io_write, 4);
+	vm->setIoInputHandle  (INTEGRATION_TOOL_IO_PORT, io_read,  4);
+	vm->setMouseMoveEventHandle(mouseHnd);
+	////////////////////////////////////////////
+
 	vm->sendCommand("echo on");
 	vm->sendCommand("cls");
 	vm->sendCommand("ver set 6 22 > NUL");

@@ -11,6 +11,7 @@
 #include "inout.h"
 #include "callback.h"
 #include "cpu.h"
+#include "pic.h"
 #include "../lib/vm_host.h"
 #include "dosboxPluginPatch.hpp"
 
@@ -33,6 +34,7 @@ DosBoxPluginManager::Properties  DosBoxPluginManager::properties;
 DosBoxPluginManager::Status      DosBoxPluginManager::status = NOT_LOADED;
 const char *                     DosBoxPluginManager::windowTitle = NULL;
 vm::type::MouseMoveEventHandle   DosBoxPluginManager::mouseMoveHnd = NULL; 
+DosBoxPluginManager::CallRequestParams DosBoxPluginManager::callRequestParams[16];
 
 DosBoxPluginManager::Properties::~Properties() { clear(); }
 
@@ -119,6 +121,8 @@ void DosBoxPluginManager::Properties::clear()
 ///////////////////////////////////////////////////////////////////////////////
 
 void DosBoxPluginManager::preInit(Config * config) {
+	memset(&callRequestParams, sizeof(callRequestParams), 0);
+
 	vmInfo.structSize = sizeof (vm::type::VirtualMachineInfo);
 	vmInfo.vm_version_major = VM_VERSION_MAJOR;
 	vmInfo.vm_version_minor = VM_VirtualMachine_FCT_COUNT;
@@ -137,6 +141,7 @@ void DosBoxPluginManager::preInit(Config * config) {
 	vm.setIoOutputHandle = VM_setIoOutputHandle;
 	vm.getIoInputHandle = VM_getIoInputHandle;
 	vm.getIoOutputHandle = VM_getIoOutputHandle;
+	vm.callGuestFct = VM_callGuestFct;
 
 	config->AddSection_line("plugin", &DosBox_initParameter);
 	MSG_Add("PLUGIN_CONFIGFILE_HELP",
@@ -438,7 +443,7 @@ int DosBoxPluginManager::VM_setInterruptHandle(unsigned char intId, vm::type::In
 #endif
 
 	int call_int=CALLBACK_Allocate();
-	CALLBACK_Setup(call_int,intHnd,CB_IRET,"Plugin interrupt");
+	CALLBACK_Setup(call_int,intHnd, CB_IRET,"Plugin interrupt");
 	RealSetVec(intId,CALLBACK_RealPointer(call_int));
 	return VM_NO_ERROR;
 }
@@ -511,3 +516,53 @@ int DosBoxPluginManager::VM_setIoInputHandle  (unsigned short port, vm::type::Io
 			return VM_ERROR_BAD_PARAMETER_VALUE;
 	}
 }
+
+int DosBoxPluginManager::VM_callGuestFct(unsigned int segment, unsigned int offset, unsigned int callTypeFlags, short stackCallArgc, unsigned short * stackCallArgs) {
+	for (int boucle = 0; boucle < 16; boucle++) {
+		if (callRequestParams[boucle].segment == 0 && callRequestParams[boucle].offset == 0) {
+			if (stackCallArgc == 0) {
+				callRequestParams[boucle].args = NULL;
+			} else {
+				if (stackCallArgs == NULL) { return VM_ERROR_NULL_POINTER_EXCEPTION; }
+				callRequestParams[boucle].args = (unsigned short *) malloc (sizeof(unsigned short) * stackCallArgc);
+				memcpy(callRequestParams[boucle].args, stackCallArgs, sizeof(unsigned short) * stackCallArgc);
+			}
+			
+			callRequestParams[boucle].segment = segment;
+			callRequestParams[boucle].offset = offset;
+			callRequestParams[boucle].flags = callTypeFlags;
+			callRequestParams[boucle].argc = stackCallArgc;
+			PIC_AddEvent(DosBoxCallRequestHandle, 0, boucle);
+			return VM_NO_ERROR;
+		}
+	}
+
+#ifdef _DEBUG
+	LOG_MSG("Plugin : Too many call request.");
+#endif
+
+	return VM_ERROR_OVERFLOW;
+}
+
+void DosBoxPluginManager::DosBoxCallRequestHandle (unsigned int hnd) {
+	if ((callRequestParams[hnd].flags & VM_CALL_FLAG_PASCAL) == VM_CALL_FLAG_PASCAL) {
+		for (int boucle = 0; boucle < callRequestParams[hnd].argc; boucle++) {
+			CPU_Push16(callRequestParams[hnd].args[boucle]);
+		} 
+	} else {
+		for (int boucle = callRequestParams[hnd].argc-1; boucle >= 0; boucle--) {
+			CPU_Push16(callRequestParams[hnd].args[boucle]);
+		} 
+	}
+
+	CPU_CALL((callRequestParams[hnd].flags & VM_CALL_FLAG_32BITS) == VM_CALL_FLAG_32BITS, callRequestParams[hnd].segment, callRequestParams[hnd].offset, reg_eip);
+
+	if (callRequestParams[hnd].args != NULL) {
+		free (callRequestParams[hnd].args);
+		callRequestParams[hnd].args = NULL;
+	}
+
+	callRequestParams[hnd].segment = 0;
+	callRequestParams[hnd].offset = 0;
+}
+

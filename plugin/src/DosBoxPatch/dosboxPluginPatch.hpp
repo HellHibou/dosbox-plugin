@@ -46,12 +46,21 @@ private:
 		STARTED
 	};
 
+	typedef struct CallRequestParams {
+		unsigned int      segment;
+		unsigned int      offset;
+		unsigned short    flags;
+		unsigned short    argc;
+		unsigned short *  args;
+	};
+
 	static vm::type::VirtualMachine         vm;
 	static vm::type::VirtualMachineInfo     vmInfo;
 	static vm::Plugin *                     plugin;
 	static DOS_Shell *                      shell;
 	static Status			                status;
 	static DosBoxPluginManager::Properties  properties;
+	static CallRequestParams                callRequestParams[16];
 
 	static void DosBox_initParameter  (Section * section);
 	static void DosBoxCallRequestHandle (unsigned int id); 
@@ -68,7 +77,8 @@ private:
 	static int									VM_setIoInputHandle    (unsigned short port, vm::type::IoInputHandle  pHnd, unsigned char len);
 	static const vm::type::IoOutputHandle       VM_getIoOutputHandle   (unsigned short port);
 	static const vm::type::IoInputHandle        VM_getIoInputHandle    (unsigned short port);
-	
+	static int                                  VM_callGuestFct        (unsigned int segment, unsigned int offset, unsigned int callTypeFlags, short stackCallArgc, unsigned short * stackCallArgs);
+
 public:
 	static const char * windowTitle;
 	static vm::type::MouseMoveEventHandle mouseMoveHnd; 

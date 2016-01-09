@@ -122,6 +122,8 @@
     <ClCompile Include="..\..\src\CommonPlugin\dllmain.cpp" />
     <ClCompile Include="..\..\src\CommonPlugin\plugin_common.cpp" />
     <ClCompile Include="..\..\src\lib\iconset.cpp" />
+    <ClCompile Include="..\..\src\lib\vm_utils.cpp" />
+    <ClCompile Include="..\..\src\Win16Plugin\IntegrationHost.cpp" />
     <ClCompile Include="..\..\src\Win16Plugin\Win16Plugin.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -130,6 +132,9 @@
     <ClInclude Include="..\..\src\lib\iconset.hpp" />
     <ClInclude Include="..\..\src\lib\vm_host.h" />
     <ClInclude Include="..\..\src\lib\vm_plugin.h" />
+    <ClInclude Include="..\..\src\lib\vm_utils.hpp" />
+    <ClInclude Include="..\..\src\Win16Plugin\IntegrationHost.hpp" />
+    <ClInclude Include="..\..\src\Win16Plugin\VMITPT.h" />
     <ClInclude Include="resource.h" />
   </ItemGroup>
   <ItemGroup>

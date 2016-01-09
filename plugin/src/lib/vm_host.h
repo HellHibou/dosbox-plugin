@@ -29,14 +29,26 @@
 #define VM_UNKNOWN_ERROR                -999 /**< Unknow error. */
 #define VM_CUSTOM_VM_ERROR			   -1000 /**< First specific error code of virtual machine. */
 
-#define VM_CALL_FLAG_16BITS   0
+/** 16 bit function call. */
+#define VM_CALL_FLAG_16BITS   0 
+
+/** 32 bit function call. */
 #define VM_CALL_FLAG_32BITS   1
+
+/** C call convertion. */
 #define VM_CALL_FLAG_C        0
+
+/** Pascal call convertion. */
 #define VM_CALL_FLAG_PASCAL   4
 
-#define VM_VirtualMachine_FCT_COUNT ((sizeof (vm::type::VirtualMachine) - sizeof(int)) / sizeof(void*)) /**< Number of functions'spointere into VirtualMachine structure. */
-#define VM_VirtualMachine_MINSIZE (sizeof(int) + sizeof(void*)) /**< Minimal size of VirtualMachine strcuture. */
-#define VM_SIZEOF_VMNAME 16 /**< Size of VirtualMachineInfo.name */
+ /** Number of functions'spointere into VirtualMachine structure. */
+#define VM_VirtualMachine_FCT_COUNT ((sizeof (vm::type::VirtualMachine) - sizeof(int)) / sizeof(void*))
+
+/** Minimal size of VirtualMachine strcuture. */
+#define VM_VirtualMachine_MINSIZE (sizeof(int) + sizeof(void*)) 
+
+/** Size of VirtualMachineInfo.name */
+#define VM_SIZEOF_VMNAME 16
 
 #ifdef __cplusplus
 	namespace vm { namespace type {
@@ -204,6 +216,21 @@ struct VirtualMachine
 	 * \return Port input handle.
 	 */
 	const IoInputHandle (*getIoInputHandle) (unsigned short port);
+
+	/**
+     * \brief Call guest function.
+     * \param segment Segment adrress of guest function to call.
+     * \param offset Offset adrress of guest function to call.
+     *
+	 * \param callFlags Flags to define call parameters :
+	 *                  VM_CALL_FLAGS_16BITS : 16 bits call.
+	 *                  VM_CALL_FLAGS_32BITS : 32 bits call.
+     *
+     * \param stackCallArgc Number of argument to send to called function.
+	 * \param stackCallArgs Arguments list to send to called function.
+     * \param completeHandle Handle to function to call when execution completed.
+     */
+	int (*callGuestFct)(unsigned int segment, unsigned int offset, unsigned int callTypeFlags, short stackCallArgc, unsigned short * stackCallArgs);
 };
 #ifdef __cplusplus
 	}
