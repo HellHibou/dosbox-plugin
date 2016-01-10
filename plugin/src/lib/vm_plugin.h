@@ -1,5 +1,4 @@
 /**
- * \file vm_plugin.h
  * \brief Virtual machine's plugin library definition.
  * \author Jeremy Decker
  * \version 0.1
@@ -7,6 +6,8 @@
  */
 
 #pragma once
+#ifndef __JREKCED_VM_PLUGIN_H__
+#define __JREKCED_VM_PLUGIN_H__
 
 #include "vm_host.h"
 
@@ -82,4 +83,6 @@ namespace vm
 	 * \return Error code or VM_NO_ERROR if no error.
 	 */
 	typedef int  (*T_VMPLUGIN_PostInit)(VirtualMachine * vm, void * instance);
+#endif
+
 #endif

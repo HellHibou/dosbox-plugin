@@ -5,6 +5,8 @@
  * \date 04/01/2016
  */
 #pragma once
+#ifndef __JREKCED_VM_PIPEIOHOST_HPP__
+#define __JREKCED_VM_PIPEIOHOST_HPP__
 
 #include <stdio.h>
 #include "vm_host.h"
@@ -96,3 +98,5 @@ namespace vm {
 			unsigned int write(unsigned short iolen);
 	};
 };
+
+#endif

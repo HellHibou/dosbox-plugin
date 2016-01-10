@@ -1,5 +1,4 @@
 /**
- * \file vm_plugin.cpp
  * \brief Virtual machine's plugin library loader class.
  * \author Jeremy Decker
  * \version 0.1

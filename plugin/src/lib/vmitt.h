@@ -24,7 +24,7 @@
 #define INTEGRATION_TOOL_FCT_INIT      0 
 
  /** Function code : Un-initialisation. */
-#define INTEGRATION_TOOL_FCT_UNINIT    1
+#define INTEGRATION_TOOL_FCT_UNINIT  1
 
 /** Function code : Syncrhonize host and guest. */
 #define INTEGRATION_TOOL_FCT_SYNC 2 

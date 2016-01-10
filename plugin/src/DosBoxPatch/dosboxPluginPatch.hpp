@@ -1,5 +1,4 @@
 /**
- * \file dosboxPluginPatch.cpp
  * \brief DosBox plugin patch.
  * \author Jeremy Decker
  * \version 0.1
@@ -7,12 +6,14 @@
  */
 
 #pragma once
+#ifndef __JREKCED_DOSBOXPLUGINPATCH_HPP__
+#define __JREKCED_DOSBOXPLUGINPATCH_HPP__
 
 #include <SDL.h>
 #include <shell.h>
 #include <string>
-#include "../lib/vm_plugin.hpp"
-#include "../lib/vm_host.h"
+#include "vm_plugin.hpp"
+#include "vm_host.h"
 #include "Control.h"
 #include "regs.h"
 
@@ -88,3 +89,5 @@ public:
 	static void start();
 	static void unload();
 };
+
+#endif

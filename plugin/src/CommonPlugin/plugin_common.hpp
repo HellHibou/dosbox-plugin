@@ -1,7 +1,15 @@
+/**
+ * \brief Common source code for DosPlugin and Win16Plugin.
+ * \author Jeremy Decker
+ * \version 0.1
+ * \date 14/11/2015
+ */
 #pragma once
+#ifndef __JREKCED_PLUGIN_COMMON_HPP__
+#define __JREKCED_PLUGIN_COMMON_HPP__
 
-#include "..\lib\vm_host.h"
-#include "..\lib\iconset.hpp"
+#include "vm_host.h"
+#include "iconset.hpp"
 
 #ifdef WIN32
 	#define LIBRARY_API extern "C" __declspec(dllexport)
@@ -31,7 +39,7 @@
 
 //////////////////////////////////////////////////////////////////////////////////////
 
-struct Instance
+struct Instance /**< Plugin's instance. */
 {
 #if defined (WIN32)
 	bool          mountIsoReplace;
@@ -50,3 +58,5 @@ char * toMappedDosPath(Instance * instance, const char * winPath);
 bool ImgMount (vm::type::VirtualMachine * vm, Instance * instance, char drive, const char * isos);
 bool MapDevice (vm::type::VirtualMachine * vm, Instance * instance, char * cmdPattern, char drive, const char * path, bool setLabel = false);
 bool UnmapDevice (vm::type::VirtualMachine * vm, Instance * instance, char drive);
+
+#endif

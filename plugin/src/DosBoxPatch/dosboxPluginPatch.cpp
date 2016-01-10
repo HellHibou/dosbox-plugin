@@ -1,5 +1,4 @@
 /**
- * \file dosboxPluginPatch.cpp
  * \brief DosBox plugin patch.
  * \author Jeremy Decker
  * \version 0.1

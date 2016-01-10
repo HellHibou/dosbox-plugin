@@ -1,3 +1,10 @@
+/**
+ * \brief DosPlugin DLL entries.
+ * \author Jeremy Decker
+ * \version 0.1
+ * \date 14/11/2015
+ */
+
 #include <string.h>
 #include <sys/stat.h>
 #include "../CommonPlugin/plugin_common.hpp"
@@ -166,5 +173,6 @@ LIBRARY_API int VMPLUGIN_PostInit(vm::type::VirtualMachine * vm, void * myInstan
 			vm->sendCommand("echo.");
 		}
 	}
+
 	return VM_NO_ERROR;
 }

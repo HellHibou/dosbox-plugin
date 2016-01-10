@@ -132,10 +132,10 @@
     <ClInclude Include="..\..\src\DosPlugin\msdos_icon.h" />
     <ClInclude Include="..\..\src\lib\iconset.hpp" />
     <ClInclude Include="..\..\src\lib\IntegrationHost.hpp" />
+    <ClInclude Include="..\..\src\lib\vmitt.h" />
     <ClInclude Include="..\..\src\lib\vm_host.h" />
     <ClInclude Include="..\..\src\lib\vm_plugin.h" />
     <ClInclude Include="..\..\src\lib\vm_pipeiohost.hpp" />
-    <ClInclude Include="..\..\src\Win16Plugin\VMITPT.h" />
     <ClInclude Include="resource.h" />
   </ItemGroup>
   <ItemGroup>

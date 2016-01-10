@@ -1,11 +1,12 @@
 /**
- * \file vm_host.h
  * \brief Virtual machine structures and definition.
  * \author Jeremy Decker
  * \version 0.1
  * \date 14/11/2015
  */
 #pragma once
+#ifndef __JREKCED_VM_HOST_H__
+#define __JREKCED_VM_HOST_H__
 
 #define VMHOST_LOG_ERROR    1 /**< Error message level. */
 #define VMHOST_LOG_WARNING  2 /**< Warning message level.*/
@@ -308,4 +309,6 @@ struct VirtualMachine
 	}
 }
 	#undef struct
+#endif
+
 #endif

@@ -1,11 +1,13 @@
 /**
- * \file vm_plugin.hpp
  * \brief Virtual machine's plugin library loader class.
  * \author Jeremy Decker
  * \version 0.1
  * \date 14/11/2015
  */
+
 #pragma once
+#ifndef __JREKCED_VM_PLUGIN_HPP__
+#define __JREKCED_VM_PLUGIN_HPP__
 
 #include "vm_plugin.h"
 
@@ -73,3 +75,5 @@ namespace vm
 			int postInit();
 	};
 }
+
+#endif

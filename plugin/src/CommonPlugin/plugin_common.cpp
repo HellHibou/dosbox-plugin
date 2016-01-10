@@ -1,3 +1,10 @@
+/**
+ * \brief Common source code for DosPlugin and Win16Plugin.
+ * \author Jeremy Decker
+ * \version 0.1
+ * \date 14/11/2015
+ */
+
 #ifdef WIN32
 	#include <windows.h>
 	#include <WinIoCtl.h>

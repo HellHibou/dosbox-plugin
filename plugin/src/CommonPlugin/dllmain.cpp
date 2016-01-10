@@ -1,4 +1,11 @@
-#pragma
+/**
+ * \brief Windows main DLL file.
+ * \author Jeremy Decker
+ * \version 0.1
+ * \date 14/11/2015
+ */
+
+#pragma once
 
 #if defined (WIN32)
 
@@ -6,12 +13,6 @@
 #include <windows.h>
 
 extern "C" int APIENTRY DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID lpReserved)
-{ 
-	/*
-	if (dwReason == DLL_PROCESS_ATTACH) {}
-	else if (dwReason == DLL_PROCESS_DETACH) {}
-	*/
-	return TRUE;
-}
+{ return TRUE; }
 
 #endif

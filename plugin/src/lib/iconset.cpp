@@ -1,3 +1,10 @@
+/**
+ * \brief Icon loader library.
+ * \author Jeremy Decker
+ * \version 0.1
+ * \date 14/11/2015
+ */
+
 #include <math.h> 
 #include "iconset.hpp"
 
