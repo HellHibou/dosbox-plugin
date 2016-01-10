@@ -388,9 +388,9 @@ LIBRARY_API int VMPLUGIN_PreInit(vm::type::VirtualMachine * vm, void * myInstanc
 	if (vm->structSize < sizeof(vm::type::VirtualMachine)) { return VM_ERROR_BAD_STRUCT_SIZE; }
 	Instance * instance = (Instance*)myInstance;
 
-	vm->logMessage(VMHOST_LOG_DEBUG, "---");
-	vm->logMessage(VMHOST_LOG_DEBUG, PLUGIN_INTRO);
-	vm->logMessage(VMHOST_LOG_DEBUG, "---");
+	vm->logMessage(VMHOST_LOG_CONSOLE, "---");
+	vm->logMessage(VMHOST_LOG_CONSOLE, PLUGIN_INTRO);
+	vm->logMessage(VMHOST_LOG_CONSOLE, "---");
 	vm->sendCommand("echo off");
 	vm->setWindowTitle(vm->getParameter("title"));
 

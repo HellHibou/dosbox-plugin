@@ -8,6 +8,7 @@
 #ifndef __JREKCED_VM_HOST_H__
 #define __JREKCED_VM_HOST_H__
 
+#define VMHOST_LOG_CONSOLE  0 /**< Send message to console. */
 #define VMHOST_LOG_ERROR    1 /**< Error message level. */
 #define VMHOST_LOG_WARNING  2 /**< Warning message level.*/
 #define VMHOST_LOG_INFO     3 /**< Information message level.*/

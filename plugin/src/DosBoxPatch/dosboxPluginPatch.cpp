@@ -322,6 +322,10 @@ int DosBoxPluginManager::VM_setWindowTitle (const char * title) {
 
 int DosBoxPluginManager::VM_logMessage (int messageType, const char * message) {
 	switch (messageType) {
+		case  VMHOST_LOG_CONSOLE:
+			LOG_MSG("%s", message);
+			break;
+
 #ifdef WIN32
 		case VMHOST_LOG_ERROR:
 			MessageBox(NULL, message, "DosBox Plugin" ,MB_ICONERROR|MB_OK);
