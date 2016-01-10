@@ -1,11 +1,12 @@
 /**
- * \file VMIPT.h
  * \brief Virtual machine integration tool guest/host common structures.
  * \author Jeremy Decker
  * \version 0.1
  * \date 09/01/2016
  */
 #pragma once
+#ifndef __JREKCED_VMITT_H__
+#define __JREKCED_VMITT_H__
 
 /** Major version protocol. */
 #define INTEGRATION_TOOL_MAJOR_VERSION 0 
@@ -13,8 +14,8 @@
 /** Minor version protocol. */
 #define INTEGRATION_TOOL_MINOR_VERSION 1 
 
-/** I/O port number. */
-#define INTEGRATION_TOOL_IO_PORT 0xFF01 
+/** Default I/O port number. */
+#define INTEGRATION_TOOL_DEFAULT_IO_PORT 0xFFF0
 
 /** Protocol identification. */
 #define INTEGRATION_TOOL_MAGIC "VMITP" 
@@ -25,8 +26,11 @@
  /** Function code : Un-initialisation. */
 #define INTEGRATION_TOOL_FCT_UNINIT    1
 
-/** Function code : Called by guest timer. */
-#define INTEGRATION_TOOL_FCT_TIMER     2 
+/** Function code : Syncrhonize host and guest. */
+#define INTEGRATION_TOOL_FCT_SYNC 2 
+
+/** Number of function into StdGuestFunctionHandles. */
+#define INTEGRATION_TOOL_COUNT_STD_GUEST_FUNCTIONS (sizeof (StdGuestFunctionHandles) / sizeof(GuestHandle))
 
 /** 16 bit function call. */
 #define VM_CALL_FLAG_16BITS   0 
@@ -58,14 +62,27 @@ struct GuestHandle {
 		/** \brief word[1] = segment adress, word[1] = offset adress. */
 		unsigned short word [2];
 
+		/** \brief 32 bits value of pointer. */
+		unsigned long dword;
+
 		/** \brief Guest pointer. */
-		void *         guestPtr;
-	} pointer;
+		void * pointer;
+	} guestPtr;
 
 	/**
 	 * \brief Call flags (VM_CALL_FLAG_16BITS or VM_CALL_FLAG_32BITS) | (VM_CALL_FLAG_C or VM_CALL_FLAG_PASCAL).
 	 */
 	unsigned short flags;
+};
+
+/** List of standard guest functions handles. */
+struct StdGuestFunctionHandles {
+
+	/** \brief Guest pointer handle to ShutdownSystem function. */
+	GuestHandle ShutdownSystem;
+
+	/** \brief Guest pointer handle to SetMousePos function. */
+	GuestHandle SetMousePos;
 };
 
 /** \brief Data transfert structure. */
@@ -81,16 +98,13 @@ struct DataTransfertBlock {
 		struct InitHost {
 
 			/** \brief Protocol magic code = INTEGRATION_TOOL_MAGIC. */
-			char magic   [6];
+			char magic [6];
 
 			/** \brief Protocol major version = INTEGRATION_TOOL_MAJOR_VERSION. */
 			unsigned short majorVersion;
 
-			/** \brief Protocol linor version = INTEGRATION_TOOL_MINOR_VERSION. */
+			/** \brief Protocol minor version = INTEGRATION_TOOL_MINOR_VERSION. */
 			unsigned short minorVersion;
-
-			/** \brief Mouse parameter to set (mouse speed, ...). */
-			unsigned short systemMouseInfo[3];
 
 		} initHost;
 
@@ -109,14 +123,16 @@ struct DataTransfertBlock {
 			/** \brief Protocol linor version = INTEGRATION_TOOL_MINOR_VERSION. */
 			unsigned short minorVersion;
 			
-			/** \brief Guest pointer handle to ShutdownSystem function. */
-			GuestHandle ShutdownSystem;
+			/** \brief Number of function into guestFunctionHandels ( = INTEGRATION_TOOL_COUNT_STD_GUEST_FUNCTIONS). */
+			unsigned short guestFunctionHandlesCount;
 
-			/** \brief Guest pointer handle to SetMousePos function. */
-			GuestHandle SetMousePos;
+			/** Standard guest function handles. */
+			StdGuestFunctionHandles stdFct;
 
 		} initGuest;
 	} data;
 };
 
 #pragma pack(pop)
+
+#endif

@@ -1,13 +1,19 @@
 /**
- * \file vm_guest.cpp
- * \brief Guest virtual machine library.
+ * \brief Virtual machine's guest pipe I/O library.
  * \author Jeremy Decker
  * \version 0.1
  * \date 04/01/2016
  */
 
-#include "../../lib/vm_guest.hpp"
-#include <dos.h>
+#include <conio.h>
+#include "vmiog.hpp"
+
+#if defined(__WATCOMC__) || defined(_MSC_VER)
+#  define inport(px)     inpw(px)
+#  define inportb(px)    inp(px)
+#  define outport(px,w)  outpw(px,w)
+#  define outportb(px,b) outp(px,b)
+#endif
 
 static const char sign[] = "VMP\0";
 
@@ -15,7 +21,7 @@ PipeIoGuest::PipeIoGuest(unsigned int myPort) {
 	port = myPort;
 }
 
-void PipeIoGuest::write (void * data, unsigned short size) {
+void PipeIoGuest::writeBlock (void * data, unsigned short size) {
 	outport (port, *(short *) sign);
 	outport (port, ((short *) sign)[1]);
 	outport (port, size);
@@ -27,7 +33,7 @@ void PipeIoGuest::write (void * data, unsigned short size) {
 	};
 };
 
-int PipeIoGuest::read(void * data, unsigned short size) {
+int PipeIoGuest::readBlock(void * data, unsigned short size) {
 	int index = 0;
 	while (index < 4)
 	{

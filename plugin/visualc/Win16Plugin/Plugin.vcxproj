@@ -45,6 +45,7 @@
     <LinkIncremental>true</LinkIncremental>
     <OutDir>$(Configuration)\</OutDir>
     <ExtensionsToDeleteOnClean>*.log;*.cdf;*.cache;*.obj;*.ilk;*.resources;*.tlb;*.tli;*.tlh;*.tmp;*.rsp;*.pgc;*.pgd;*.meta;*.tlog;*.manifest;*.res;*.pch;*.exp;*.idb;*.rep;*.xdc;*.pdb;*_manifest.rc;*.bsc;*.sbr;*.xml;*.metagen;*.bi</ExtensionsToDeleteOnClean>
+    <IncludePath>$(VCInstallDir)include;$(VCInstallDir)atlmfc\include;$(WindowsSdkDir)include;$(FrameworkSDKDir)\include;$(SolutionDir)..\plugin\src\lib</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release x86|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -122,18 +123,18 @@
     <ClCompile Include="..\..\src\CommonPlugin\dllmain.cpp" />
     <ClCompile Include="..\..\src\CommonPlugin\plugin_common.cpp" />
     <ClCompile Include="..\..\src\lib\iconset.cpp" />
-    <ClCompile Include="..\..\src\lib\vm_utils.cpp" />
-    <ClCompile Include="..\..\src\Win16Plugin\IntegrationHost.cpp" />
+    <ClCompile Include="..\..\src\lib\IntegrationHost.cpp" />
+    <ClCompile Include="..\..\src\lib\vm_pipeiohost.cpp" />
     <ClCompile Include="..\..\src\Win16Plugin\Win16Plugin.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\CommonPlugin\plugin_common.hpp" />
     <ClInclude Include="..\..\src\DosPlugin\msdos_icon.h" />
     <ClInclude Include="..\..\src\lib\iconset.hpp" />
+    <ClInclude Include="..\..\src\lib\IntegrationHost.hpp" />
     <ClInclude Include="..\..\src\lib\vm_host.h" />
     <ClInclude Include="..\..\src\lib\vm_plugin.h" />
-    <ClInclude Include="..\..\src\lib\vm_utils.hpp" />
-    <ClInclude Include="..\..\src\Win16Plugin\IntegrationHost.hpp" />
+    <ClInclude Include="..\..\src\lib\vm_pipeiohost.hpp" />
     <ClInclude Include="..\..\src\Win16Plugin\VMITPT.h" />
     <ClInclude Include="resource.h" />
   </ItemGroup>

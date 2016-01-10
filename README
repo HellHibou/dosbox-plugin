@@ -95,6 +95,20 @@ application-window: Status of application's window of the application to launch 
                     default:   Start application with default size. 					
 
 
+Win16Plugin Integrattion Tool
+==============================
+
+You can install integration tools to add features :
+- Use (working) shared mouse (set autolock=false into config file).
+
+To install integration tool :
+- Copy GUESTW16.EXE into virtualized windows's directory;
+- Edit WIN.INI file;
+- Into [windows] section, add load=GUESTW16.EXE;
+
+- Optionnal : Into DosBox configuration file, into [SDL] section, set autolock to false;
+
+
 Windows shell integration
 ==========================
 

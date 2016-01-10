@@ -9,7 +9,7 @@ extern const char PLUGIN_INTRO [] = "Win16 Plugin version SVN\nCopyright 2015 He
 	#pragma warning(disable:4996)
 #endif
 
-static vm::IntegrationTool * integrationTool;
+static vm::IntegrationToolHost * integrationTool;
 
 static void mouseHnd(int x, int y) {
 	integrationTool->SetMousePos(x, y);
@@ -29,9 +29,9 @@ LIBRARY_API int VMPLUGIN_PostInit(vm::type::VirtualMachine * vm, void * myInstan
 	Instance * instance = (Instance*)myInstance;
 	
 	// Integration tool ////////////////////////
-	integrationTool = new vm::IntegrationTool(vm);
-	vm->setIoOutputHandle (INTEGRATION_TOOL_IO_PORT, io_write, 4);
-	vm->setIoInputHandle  (INTEGRATION_TOOL_IO_PORT, io_read,  4);
+	integrationTool = new vm::IntegrationToolHost(vm);
+	vm->setIoOutputHandle (INTEGRATION_TOOL_DEFAULT_IO_PORT, io_write, 4);
+	vm->setIoInputHandle  (INTEGRATION_TOOL_DEFAULT_IO_PORT, io_read,  4);
 	vm->setMouseMoveEventHandle(mouseHnd);
 	////////////////////////////////////////////
 

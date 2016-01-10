@@ -1,6 +1,5 @@
 /**
- * \file vm_utils.hpp
- * \brief Virtual machine's utility library.
+ * \brief Virtual machine's host pipe I/O library.
  * \author Jeremy Decker
  * \version 0.1
  * \date 04/01/2016

@@ -1,6 +1,5 @@
 /**
- * \file vm_utils.cpp
- * \brief Virtual machine's utility library.
+ * \brief Virtual machine's host pipe I/O library.
  * \author Jeremy Decker
  * \version 0.1
  * \date 04/01/2016
@@ -8,7 +7,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include "vm_utils.hpp"
+#include "vm_pipeiohost.hpp"
 
 namespace vm {
 	static char magic [] = "VMP\0";

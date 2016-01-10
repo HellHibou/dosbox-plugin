@@ -3,7 +3,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LocalDebuggerCommand>$(SolutionDir)dist\dosbox-debug.exe</LocalDebuggerCommand>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
-    <LocalDebuggerCommandArguments>-plugin "$(SolutionDir)dist\$(TargetName)-debug.dll"</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>-plugin "$(SolutionDir)dist\$(TargetName)-debug.dll" -x-application "D:\Programmes\WIN16\WINDOWS\winfile.exe"</LocalDebuggerCommandArguments>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release x86|Win32'">
     <LocalDebuggerCommand>$(SolutionDir)dist\dosbox-x86-noconsole.exe</LocalDebuggerCommand>
