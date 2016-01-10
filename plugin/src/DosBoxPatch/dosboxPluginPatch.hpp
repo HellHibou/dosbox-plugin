@@ -48,6 +48,7 @@ private:
 	};
 
 	typedef struct CallRequestParams {
+		CallRequestParams * next;
 		unsigned int      segment;
 		unsigned int      offset;
 		unsigned short    flags;
@@ -61,7 +62,7 @@ private:
 	static DOS_Shell *                      shell;
 	static Status			                status;
 	static DosBoxPluginManager::Properties  properties;
-	static CallRequestParams                callRequestParams[16];
+	static CallRequestParams *              callRequestParams;
 
 	static void DosBox_initParameter  (Section * section);
 	static void DosBoxCallRequestHandle (unsigned int id); 

@@ -33,7 +33,7 @@ DosBoxPluginManager::Properties  DosBoxPluginManager::properties;
 DosBoxPluginManager::Status      DosBoxPluginManager::status = NOT_LOADED;
 const char *                     DosBoxPluginManager::windowTitle = NULL;
 vm::type::MouseMoveEventHandle   DosBoxPluginManager::mouseMoveHnd = NULL; 
-DosBoxPluginManager::CallRequestParams DosBoxPluginManager::callRequestParams[16];
+DosBoxPluginManager::CallRequestParams * DosBoxPluginManager::callRequestParams = NULL;
 
 DosBoxPluginManager::Properties::~Properties() { clear(); }
 
@@ -471,9 +471,9 @@ const vm::type::IoOutputHandle DosBoxPluginManager::VM_getIoOutputHandle (unsign
 int DosBoxPluginManager::VM_setIoOutputHandle (unsigned short port, vm::type::IoOutputHandle pHnd, unsigned char len) {
 #ifdef _DEBUG
 	if (pHnd == NULL) {
-		LOG_MSG("Plugin : Unset output port handle %i.", port);
+		LOG_MSG("Plugin : Unset output port handle 0x%X.", port);
 	} else {
-		LOG_MSG("Plugin : Set output port handle %i.", port);
+		LOG_MSG("Plugin : Set output port handle 0x%X.", port);
 	}
 #endif
 
@@ -521,51 +521,49 @@ int DosBoxPluginManager::VM_setIoInputHandle  (unsigned short port, vm::type::Io
 }
 
 int DosBoxPluginManager::VM_callGuestFct(unsigned int segment, unsigned int offset, unsigned int callTypeFlags, short stackCallArgc, unsigned short * stackCallArgs) {
-	for (int boucle = 0; boucle < 16; boucle++) {
-		if (callRequestParams[boucle].segment == 0 && callRequestParams[boucle].offset == 0) {
-			if (stackCallArgc == 0) {
-				callRequestParams[boucle].args = NULL;
-			} else {
-				if (stackCallArgs == NULL) { return VM_ERROR_NULL_POINTER_EXCEPTION; }
-				callRequestParams[boucle].args = (unsigned short *) malloc (sizeof(unsigned short) * stackCallArgc);
-				memcpy(callRequestParams[boucle].args, stackCallArgs, sizeof(unsigned short) * stackCallArgc);
-			}
-			
-			callRequestParams[boucle].segment = segment;
-			callRequestParams[boucle].offset = offset;
-			callRequestParams[boucle].flags = callTypeFlags;
-			callRequestParams[boucle].argc = stackCallArgc;
-			PIC_AddEvent(DosBoxCallRequestHandle, 0, boucle);
-			return VM_NO_ERROR;
-		}
-	}
+	CallRequestParams * newCall = (CallRequestParams *) malloc (sizeof(CallRequestParams));
+	newCall->next = NULL;
+	newCall->segment = segment;
+	newCall->offset = offset;
+	newCall->flags = callTypeFlags;
+	newCall->argc = stackCallArgc;
 
-#ifdef _DEBUG
-	LOG_MSG("Plugin : Too many call request.");
-#endif
+	if (stackCallArgc == 0) {
+        newCall->args = NULL;
+    } else {
+        if (stackCallArgs == NULL) { return VM_ERROR_NULL_POINTER_EXCEPTION; }
+        newCall->args = (unsigned short *) malloc (sizeof(unsigned short) * stackCallArgc);
+        memcpy(newCall->args, stackCallArgs, sizeof(unsigned short) * stackCallArgc);
+    }
 
-	return VM_ERROR_OVERFLOW;
+	CallRequestParams * * ptr = &DosBoxPluginManager::callRequestParams;
+	while (*ptr != NULL) { ptr = (CallRequestParams * *) *ptr; }
+	*ptr = (CallRequestParams *) newCall;
+	PIC_AddEvent(DosBoxCallRequestHandle, 0, 0);
+	return VM_NO_ERROR;
 }
 
 void DosBoxPluginManager::DosBoxCallRequestHandle (unsigned int hnd) {
-	if ((callRequestParams[hnd].flags & VM_CALL_FLAG_PASCAL) == VM_CALL_FLAG_PASCAL) {
-		for (int boucle = 0; boucle < callRequestParams[hnd].argc; boucle++) {
-			CPU_Push16(callRequestParams[hnd].args[boucle]);
-		} 
-	} else {
-		for (int boucle = callRequestParams[hnd].argc-1; boucle >= 0; boucle--) {
-			CPU_Push16(callRequestParams[hnd].args[boucle]);
-		} 
+	while (DosBoxPluginManager::callRequestParams != NULL) {
+		if ((DosBoxPluginManager::callRequestParams->flags & VM_CALL_FLAG_PASCAL) == VM_CALL_FLAG_PASCAL) {
+			for (int boucle = 0; boucle < DosBoxPluginManager::callRequestParams->argc; boucle++) {
+				CPU_Push16(DosBoxPluginManager::callRequestParams->args[boucle]);
+			} 
+		} else {
+			for (int boucle = DosBoxPluginManager::callRequestParams->argc-1; boucle >= 0; boucle--) {
+				CPU_Push16(DosBoxPluginManager::callRequestParams->args[boucle]);
+			} 
+		}
+
+		CPU_CALL((callRequestParams[hnd].flags & VM_CALL_FLAG_32BITS) == VM_CALL_FLAG_32BITS, callRequestParams[hnd].segment, callRequestParams[hnd].offset, reg_eip);
+
+		if (DosBoxPluginManager::callRequestParams->args != NULL) {
+			free (DosBoxPluginManager::callRequestParams->args);
+		}
+
+		DosBoxPluginManager::CallRequestParams * oldHnd = DosBoxPluginManager::callRequestParams;
+		DosBoxPluginManager::callRequestParams = DosBoxPluginManager::callRequestParams->next;
+		free (oldHnd);
 	}
-
-	CPU_CALL((callRequestParams[hnd].flags & VM_CALL_FLAG_32BITS) == VM_CALL_FLAG_32BITS, callRequestParams[hnd].segment, callRequestParams[hnd].offset, reg_eip);
-
-	if (callRequestParams[hnd].args != NULL) {
-		free (callRequestParams[hnd].args);
-		callRequestParams[hnd].args = NULL;
-	}
-
-	callRequestParams[hnd].segment = 0;
-	callRequestParams[hnd].offset = 0;
 }
 
