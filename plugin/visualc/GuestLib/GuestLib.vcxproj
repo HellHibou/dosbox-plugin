@@ -62,11 +62,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\src\lib\cfg.cpp" />
     <ClCompile Include="..\..\src\lib\vmiog.cpp" />
     <ClCompile Include="..\..\src\lib\vmitg.cpp" />
     <ClCompile Include="..\..\src\Win16Plugin\GUEST\guest.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\src\lib\cfg.hpp" />
     <ClInclude Include="..\..\src\lib\vmiog.hpp" />
     <ClInclude Include="..\..\src\lib\vmitg.hpp" />
     <ClInclude Include="..\..\src\lib\vmitt.h" />
