@@ -47,5 +47,4 @@ visualc_net/Release x86 NoConsole/
 visualc_net/dist
 visualc_net/ipch
 plugin/src/Win16Plugin/*/*.DSW
-plugin/src/Win16Plugin/*/*.RC
 plugin/src/Win16Plugin/*/*.RWS
