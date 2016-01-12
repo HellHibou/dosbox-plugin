@@ -142,3 +142,14 @@ LIBRARY_API int VMPLUGIN_PostInit(vm::type::VirtualMachine * vm, void * myInstan
 	vm->sendCommand("exit");
 	return VM_NO_ERROR;
 }
+
+
+LIBRARY_API int VMPLUGIN_ShutdownRequest(vm::type::VirtualMachine * vm, void * myInstance) {
+	if (vm == NULL) { return VM_ERROR_NULL_POINTER_EXCEPTION; }
+	if (vm->structSize < sizeof(vm::type::VirtualMachine)) { return VM_ERROR_BAD_STRUCT_SIZE; }
+	if (integrationTool->ShutdownRequest()) {
+		return VM_NO_ERROR; 
+	} else {
+		return VM_ERROR_UNSUPPORTED_OPERATION;
+	}
+}

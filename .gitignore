@@ -48,3 +48,4 @@ visualc_net/dist
 visualc_net/ipch
 plugin/src/Win16Plugin/*/*.DSW
 plugin/src/Win16Plugin/*/*.RWS
+plugin/src/Win16Plugin/GUEST/GUEST.CSM

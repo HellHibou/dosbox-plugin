@@ -31,8 +31,7 @@ void beforeExit() {
 	SystemParametersInfo(SPI_SETMOUSE, 0, &oldMouseParam, 0);
 }
 
-void ShutdownSystem() {
-	beforeExit();
+void ShutdownRequest() {
 	ExitWindows(0,0);
 }
 
@@ -66,7 +65,7 @@ void Initialize(HINSTANCE hinst)  {
 	}
 
 	integrationTool.defineSetMousePos(SetCursorPos, VM_CALL_FLAG_16BITS | VM_CALL_FLAG_PASCAL);
-	integrationTool.defineShutdownSystem(ShutdownSystem, VM_CALL_FLAG_16BITS | VM_CALL_FLAG_C);
+	integrationTool.defineShutdownRequest(ShutdownRequest, VM_CALL_FLAG_16BITS | VM_CALL_FLAG_C);
 	integrationTool.InitHost(INTEGRATION_TOOL_GUEST_ID);
 
 	// For fluid mouse movement, set mouse speed to low value...
@@ -76,7 +75,7 @@ void Initialize(HINSTANCE hinst)  {
 	////////////////////////////////////////////////////////////
 
 	atexit(beforeExit);
-	SetTimer(NULL, 0, 10,(TIMERPROC) timer);
+	SetTimer(NULL, 0, 20,(TIMERPROC) timer);
 }
 
 int PASCAL WinMain (HINSTANCE hinst, HINSTANCE prev_inst, LPSTR cmdline, int /*cmdshow*/) {

@@ -1614,7 +1614,7 @@ void GFX_Events() {
 //			HandleVideoResize(&event.resize);
 			break;
 		case SDL_QUIT:
-			throw(0);
+			if (DosBoxPluginManager::shutdownRequest() != VM_NO_ERROR)	{ throw(0); }
 			break;
 		case SDL_VIDEOEXPOSE:
 			if (sdl.draw.callback) sdl.draw.callback( GFX_CallBackRedraw );

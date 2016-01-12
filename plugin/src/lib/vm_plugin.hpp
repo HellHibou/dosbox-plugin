@@ -40,6 +40,7 @@ namespace vm
 			type::pluginLib::DestroyInstance fct_DestroyInstance;	/**< Pointer to library function 'VMPLUGIN_DestroyInstance'. */
 			type::pluginLib::PreInit         fct_PreInit;			/**< Pointer to library function 'VMPLUGIN_PreInit'. */
 			type::pluginLib::PostInit        fct_PostInit;			/**< Pointer to library function 'VMPLUGIN_PostInit'. */
+			type::pluginLib::ShutdownRequest fct_ShutdownRequest;   /**< Pointer to library function 'VMPLUGIN_ShutdownRequest'. */
 
 		public:
 			/**
@@ -73,7 +74,13 @@ namespace vm
 			 * \return Error code or VM_NO_ERROR if no error.
 			 */
 			int postInit();
-	};
+
+			/**
+			 * \brief Send shutdown request to guest O.S.
+			 * \return If < 0, return error code.
+			 */
+			int shutdownRequest();
+		};
 }
 
 #endif

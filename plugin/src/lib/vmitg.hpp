@@ -87,12 +87,12 @@ class IntegrationToolGuest {
 		__JREKCED_VMITG_HPP_SET_FCT__(SetMousePos);
 
 		/**
-		 * \fn defineShutdownSystem
-		 * \brief Define 'ShutdownSystem' function called by host integration tool.
+		 * \fn defineShutdownRequest
+		 * \brief Define 'ShutdownRequest' function called by host integration tool.
 		 * \param function Pointer to function.
 		 * \param flags Call flags.
 		 */
-		__JREKCED_VMITG_HPP_SET_FCT__(ShutdownSystem);
+		__JREKCED_VMITG_HPP_SET_FCT__(ShutdownRequest);
 };
 
 #undef __JREKCED_VMITG_HPP_SET_FCT__

@@ -12,10 +12,9 @@
 #endif
 
 namespace vm {
-	IntegrationToolHost::IntegrationToolHost(vm::type::VirtualMachine * myVM) {
-		virtualMachine = myVM;
-
-		memset(&guestFct, sizeof(vm::type::StdGuestFunctionHandles), 0);
+	void IntegrationToolHost::clear() {
+		shutdownRequest = false;
+		memset(&guestFct, 0, sizeof(guestFct));
 		argsSetCursorPos.x = 32765;
 		argsSetCursorPos.y = 32765;
 		mouseMoved = true;
@@ -27,6 +26,11 @@ namespace vm {
 
 		setBufferRead(&readBlock);
 		setBufferWrite(&writeBlock, sizeof(vm::type::DataTransfertBlock::Data::InitHost) + 2);
+	};
+
+	IntegrationToolHost::IntegrationToolHost(vm::type::VirtualMachine * myVM) {
+		virtualMachine = myVM;
+		clear();
 	}
 
 	void IntegrationToolHost::onDataBlockReaded(void * data, unsigned short dataSize) {
@@ -36,6 +40,8 @@ namespace vm {
 			// Initialize integration tool
 			//////////////////////////////////////////////////////////////
 			case INTEGRATION_TOOL_FCT_INIT: { 
+				clear();
+
 				if (dataSize < (sizeof(vm::type::DataTransfertBlock::Data::InitGuest) + 2)) {
 					#ifdef _DEBUG
 						virtualMachine->logMessage(VMHOST_LOG_DEBUG, "Integration tool : Communication error - Invalid data size.");
@@ -110,7 +116,8 @@ namespace vm {
 			// Un-initialize integration tool
 			//////////////////////////////////////////////////////////////
 			case INTEGRATION_TOOL_FCT_UNINIT:
-				setBufferWrite(&writeBlock, sizeof(vm::type::DataTransfertBlock::Data::InitHost) + 2);
+				clear();
+
 			#ifdef _DEBUG
 				virtualMachine->logMessage(VMHOST_LOG_DEBUG, "Integration tool un-initialized.");
 			#endif
@@ -121,9 +128,16 @@ namespace vm {
 			// Synchronize host ansd guest
 			//////////////////////////////////////////////////////////////
 			case INTEGRATION_TOOL_FCT_SYNC: 
-				if (mouseMoved & guestFct.SetMousePos.guestPtr.dword != NULL) {
+				if (mouseMoved && guestFct.SetMousePos.guestPtr.dword != NULL) {
 					virtualMachine->callGuestFct(guestFct.SetMousePos.guestPtr.word[1], guestFct.SetMousePos.guestPtr.word[0], guestFct.SetMousePos.flags, 2, (unsigned short*) &argsSetCursorPos);
 					mouseMoved = false;
+				}
+				if (shutdownRequest) {
+					shutdownRequest = false;
+
+					if (guestFct.ShutdownRequest.guestPtr.dword != NULL) {
+						virtualMachine->callGuestFct(guestFct.ShutdownRequest.guestPtr.word[1], guestFct.ShutdownRequest.guestPtr.word[0], guestFct.ShutdownRequest.flags, 0, NULL);
+					}
 				}
 				break;
 
@@ -145,9 +159,12 @@ namespace vm {
 		setBufferWrite(&writeBlock, sizeof(vm::type::DataTransfertBlock::Data::InitHost) + 2); 
 	}
 
-	 void IntegrationToolHost::ShutdownSystem () {
-		if (guestFct.ShutdownSystem.guestPtr.dword != NULL) {
-			virtualMachine->callGuestFct(guestFct.ShutdownSystem.guestPtr.word[1], guestFct.ShutdownSystem.guestPtr.word[0], guestFct.ShutdownSystem.flags, 0, NULL);
+	bool IntegrationToolHost::ShutdownRequest () {
+		if (guestFct.ShutdownRequest.guestPtr.dword != NULL) {
+			shutdownRequest = true;
+			return true;
+		} else {
+			return false;
 		}
 	}
 }

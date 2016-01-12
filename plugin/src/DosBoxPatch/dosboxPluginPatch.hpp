@@ -89,6 +89,10 @@ public:
 	static void postInit(DOS_Shell * shell);
 	static void start();
 	static void unload();
+
+	static inline int shutdownRequest() {
+		return plugin->shutdownRequest();
+	}
 };
 
 #endif

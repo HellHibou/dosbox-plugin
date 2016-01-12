@@ -23,6 +23,8 @@ namespace vm {
 			vm::type::DataTransfertBlock     readBlock;
 			vm::type::DataTransfertBlock     writeBlock;
 
+			void clear();
+
 		protected:
 			#pragma pack(push, 2)
 			/** \brief SetMousePos call arguments and mouse pointer position. */
@@ -33,9 +35,9 @@ namespace vm {
 			#pragma pack(pop)
 
 			bool mouseMoved; /**< \brief true if host mouse cursor moved. */
-
+			bool shutdownRequest;
 			vm::type::VirtualMachine * virtualMachine; /**< \brief Host virtual machine. */
-			vm::type::StdGuestFunctionHandles guestFct; /**< Guest standard functions. */ 
+			vm::type::StdGuestFunctionHandles guestFct; /**< \brief Guest standard functions. */ 
 
 			void onDataBlockReaded(void * data, unsigned short dataSize);
 			void onDataBlockWrited();
@@ -46,8 +48,11 @@ namespace vm {
 			 */
 			IntegrationToolHost(vm::type::VirtualMachine * virtualMachine);
 
-			/** \brief Shutdown guest system. */
-			void ShutdownSystem ();
+			/** 
+			 * \brief Send Shutdown guest system request. 
+			 * \return true If integration tool can send Shutdown signal to guest. 
+			 */
+			bool ShutdownRequest ();
 
 			/**
 			 * \brief Set guest mouse position.

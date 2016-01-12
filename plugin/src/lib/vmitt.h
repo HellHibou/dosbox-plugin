@@ -79,7 +79,7 @@ struct GuestHandle {
 struct StdGuestFunctionHandles {
 
 	/** \brief Guest pointer handle to ShutdownSystem function. */
-	GuestHandle ShutdownSystem;
+	GuestHandle ShutdownRequest;
 
 	/** \brief Guest pointer handle to SetMousePos function. */
 	GuestHandle SetMousePos;
