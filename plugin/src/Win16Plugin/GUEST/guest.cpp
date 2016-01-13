@@ -19,10 +19,11 @@ char timerLock = 0;
 unsigned short oldMouseParam [3] = { 0, 0, 0 };
 
 void CALLBACK timer(HWND /*hwnd*/, UINT /*uMsg*/, UINT /*timerId*/, DWORD /*dwTime*/ ) {
-	if (timerLock) { return; }
-	timerLock = 1;
-	integrationTool.TimerRequest();
-	timerLock = 0;
+	if (timerLock == 0) {
+		timerLock = 1;
+		integrationTool.TimerRequest();
+		timerLock = 0;
+	}
 }
 
 void beforeExit() {
@@ -70,15 +71,15 @@ void Initialize(HINSTANCE hinst)  {
 
 	// For fluid mouse movement, set mouse speed to low value...
 	SystemParametersInfo(SPI_GETMOUSE, 0, &oldMouseParam, 0);
-	unsigned short mouseParam [3] = { 0, 0, 0 };
+	unsigned short mouseParam [3] = { 6, 10, 1 };
 	SystemParametersInfo(SPI_SETMOUSE, 0, &mouseParam, 0);
 	////////////////////////////////////////////////////////////
 
 	atexit(beforeExit);
-	SetTimer(NULL, 0, 20,(TIMERPROC) timer);
+	SetTimer(NULL, 0, 50,(TIMERPROC) timer);
 }
 
-int PASCAL WinMain (HINSTANCE hinst, HINSTANCE prev_inst, LPSTR cmdline, int /*cmdshow*/) {
+int PASCAL WinMain (HINSTANCE hinst, HINSTANCE prev_inst, LPSTR /*cmdline*/, int /*cmdshow*/) {
 	MSG msg;
 
 	if (prev_inst != NULL) {
