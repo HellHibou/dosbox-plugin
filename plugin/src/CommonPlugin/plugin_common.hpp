@@ -1,7 +1,7 @@
 /**
  * \brief Common source code for DosPlugin and Win16Plugin.
  * \author Jeremy Decker
- * \version 0.1
+ * \version 0.2
  * \date 14/11/2015
  */
 #pragma once

@@ -1,7 +1,7 @@
 /**
  * \brief Virtual machine's plugin library loader class.
  * \author Jeremy Decker
- * \version 0.1
+ * \version 0.2
  * \date 14/11/2015
  */
 

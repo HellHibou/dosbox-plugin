@@ -58,8 +58,8 @@
     <IntDir Condition="'$(Configuration)|$(Platform)'=='Release x86 NoConsole|Win32'">.\$(Configuration)\</IntDir>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release x86 Console|Win32'">false</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release x86 NoConsole|Win32'">false</LinkIncremental>
-    <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release x86 Console|Win32'">$(VCInstallDir)include;$(VCInstallDir)atlmfc\include;$(WindowsSdkDir)include;$(FrameworkSDKDir)\include;..\lib\include</IncludePath>
-    <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release x86 NoConsole|Win32'">$(VCInstallDir)include;$(VCInstallDir)atlmfc\include;$(WindowsSdkDir)include;$(FrameworkSDKDir)\include;..\lib\include</IncludePath>
+    <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release x86 Console|Win32'">$(VCInstallDir)include;$(VCInstallDir)atlmfc\include;$(WindowsSdkDir)include;$(FrameworkSDKDir)\include;..\lib\include;$(SolutionDir)..\plugin\src\lib</IncludePath>
+    <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release x86 NoConsole|Win32'">$(VCInstallDir)include;$(VCInstallDir)atlmfc\include;$(WindowsSdkDir)include;$(FrameworkSDKDir)\include;..\lib\include;$(SolutionDir)..\plugin\src\lib</IncludePath>
     <LibraryPath Condition="'$(Configuration)|$(Platform)'=='Release x86 Console|Win32'">$(VCInstallDir)lib;$(VCInstallDir)atlmfc\lib;$(WindowsSdkDir)lib;$(FrameworkSDKDir)\lib;..\lib\lib\x86</LibraryPath>
     <LibraryPath Condition="'$(Configuration)|$(Platform)'=='Release x86 NoConsole|Win32'">$(VCInstallDir)lib;$(VCInstallDir)atlmfc\lib;$(WindowsSdkDir)lib;$(FrameworkSDKDir)\lib;..\lib\lib\x86</LibraryPath>
     <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(VCInstallDir)include;$(VCInstallDir)atlmfc\include;$(WindowsSdkDir)include;$(FrameworkSDKDir)\include;..\lib\include;$(SolutionDir)..\plugin\src\lib</IncludePath>

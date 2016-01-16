@@ -1,7 +1,7 @@
 /**
  * \brief DosBox plugin patch.
  * \author Jeremy Decker
- * \version 0.1
+ * \version 0.2
  * \date 14/11/2015
  */
 
@@ -154,13 +154,16 @@ void DosBoxPluginManager::preInit(Config * config) {
 
 	for (unsigned int boucle = 0; boucle < vector.size(); boucle++) 
 	{ 
+		std::string str;
 		const char * arg;
 		arg = vector[boucle].c_str();
+
 		if (strcmp(arg, "-plugin") == 0) 
 		{
 			if (boucle+1 < vector.size()) 
 			{
 				properties.set("plugin", vector[boucle+1].c_str(), true);
+				config->cmdline->FindString(arg, str, true);
 				boucle++;
 			}
 		}
@@ -182,7 +185,6 @@ void DosBoxPluginManager::preInit(Config * config) {
 				if (arg2[0] != 0x00 && arg2[0] != '-')
 				{ 
 					properties.set(arg+3, arg2, true); 
-					std::string str;
 					config->cmdline->FindString(arg, str, true);				
 				}
 				else

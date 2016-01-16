@@ -1,7 +1,7 @@
 /* Executable version information */
 VS_VERSION_INFO VERSIONINFO LOADONCALL MOVEABLE DISCARDABLE 
-FILEVERSION 1,0,0,0
-PRODUCTVERSION 1,0,0,0
+FILEVERSION 0,2,0,0
+PRODUCTVERSION 0,2,0,0
 FILEFLAGS 0
 {
  BLOCK "StringFileInfo"
@@ -10,12 +10,12 @@ FILEFLAGS 0
   {
    VALUE "CompanyName", "©2015-2016 Jeremy Decker\0"
    VALUE "FileDescription", "Win16 DosBox Guest Integration Tool\0"
-   VALUE "FileVersion", "1.0.0.0\0"
+   VALUE "FileVersion", "0.2.0.0\0"
    VALUE "InternalName", "GuestW16\0"
    VALUE "LegalCopyright", "©2015-2016 Jeremy Decker\0"
    VALUE "OriginalFilename", "GUESTW16.EXE\0"
    VALUE "ProductName", "Win16 Guest Integration Tool\0"
-   VALUE "ProductVersion", "1.0.0.0\0"
+   VALUE "ProductVersion", "0.2.0.0\0"
   }
 
  }

@@ -1,7 +1,7 @@
 /**
  * \brief Win16Plugin DLL entries.
  * \author Jeremy Decker
- * \version 0.1
+ * \version 0.2
  * \date 14/11/2015
  */
 
@@ -10,7 +10,7 @@
 #include "../CommonPlugin/plugin_common.hpp"
 #include "IntegrationHost.hpp"
 
-extern const char PLUGIN_INTRO [] = "Win16 Plugin version SVN\nCopyright 2015-2016 Hell Hibou";
+extern const char PLUGIN_INTRO [] = "Win16 Plugin version 0.2\nCopyright 2015-2016 Hell Hibou";
 
 #ifdef _MSC_VER
 	#pragma warning(disable:4996)

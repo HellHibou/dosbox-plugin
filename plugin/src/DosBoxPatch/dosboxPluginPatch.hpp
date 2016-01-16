@@ -1,7 +1,7 @@
 /**
  * \brief DosBox plugin patch.
  * \author Jeremy Decker
- * \version 0.1
+ * \version 0.2
  * \date 14/11/2015
  */
 
@@ -92,7 +92,10 @@ public:
 	static void start();
 	static void unload();
 
-	static inline int shutdownRequest() { return plugin->shutdownRequest(); }
+	static inline int shutdownRequest() {
+		if (plugin) { return plugin->shutdownRequest(); }
+		else  { return VM_ERROR_UNSUPPORTED_OPERATION; }
+	}
 	static inline void * getPluginInstance() { return plugin->getPluginInstance(); }
 };
 

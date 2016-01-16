@@ -37,16 +37,14 @@ Thumbs.db
 *.err
 *.aps
 *.suo
-plugin/visualc/Win16Plugin/Debug/
-plugin/visualc/Win16Plugin/Release x86
-plugin/visualc/DosPlugin/Debug/
-plugin/visualc/DosPlugin/Release x86
 visualc_net/Debug
 visualc_net/Release x86 Console
 visualc_net/Release x86 NoConsole/
 visualc_net/dist
 visualc_net/ipch
+plugin/visualc/*/Debug/
+plugin/visualc/*/Release x86
 plugin/src/Win16Plugin/*/*.DSW
 plugin/src/Win16Plugin/*/*.RWS
-plugin/src/Win16Plugin/GUEST/GUEST.CSM
-plugin/src/Win16Plugin/GUEST/GUESTW16.OBR
+plugin/src/Win16Plugin/*/*.CSM
+plugin/src/Win16Plugin/*/*.OBR

@@ -1,7 +1,7 @@
 /**
  * \brief DosPlugin DLL entries.
  * \author Jeremy Decker
- * \version 0.1
+ * \version 0.2
  * \date 14/11/2015
  */
 
@@ -13,7 +13,7 @@
 	#pragma warning(disable:4996)
 #endif
 
-extern const char PLUGIN_INTRO [] = "Dos Plugin version SVN\nCopyright 2015-2016 Hell Hibou";
+extern const char PLUGIN_INTRO [] = "Dos Plugin version 0.2\nCopyright 2015-2016 Hell Hibou";
 
 LIBRARY_API int VMPLUGIN_PostInit(vm::type::VirtualMachine * vm, void * myInstance)
 {

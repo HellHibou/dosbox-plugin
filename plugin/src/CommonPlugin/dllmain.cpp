@@ -1,7 +1,7 @@
 /**
  * \brief Windows main DLL file.
  * \author Jeremy Decker
- * \version 0.1
+ * \version 0.2
  * \date 14/11/2015
  */
 
