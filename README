@@ -100,6 +100,8 @@ Win16Plugin Integrattion Tool
 
 You can install integration tools to add features :
 - Use (working) shared mouse (set autolock=false into config file).
+- Safety close Dosbox.
+
 
 To install integration tool :
 - Copy GUESTW16.EXE and GUESTW16.CFG into virtualized windows's directory;
