@@ -350,6 +350,8 @@ LIBRARY_API int VMPLUGIN_CreateInstance(vm::type::VirtualMachine * vm, void * * 
 	Instance * instance = (Instance*)malloc(sizeof(Instance));
 	for (int boucle = 0; boucle < 42; boucle++) { instance->driveMap[boucle] = NULL; }
 
+	instance->pointer = NULL;
+
 #ifndef WIN32
 	instance->firstCdRomLetter = DEFAULT_mscdex_first_letter;
 	instance->nextCdRomLetter  = NULL;

@@ -24,6 +24,7 @@
 #include "cpu.h"
 #include "../src/cpu/lazyflags.h"
 #include "callback.h"
+#include "../../plugin/src/DosBoxPatch/dosboxPluginPatch.hpp"
 
 //#define ENABLE_PORTLOG
 
@@ -318,7 +319,12 @@ void IO_WriteB(Bitu port,Bitu val) {
 	}
 	else {
 		IO_USEC_write_delay();
-		io_writehandlers[0][port](port,val,1);
+
+		if (DosBoxPluginManager::ioType[port] & DosBoxPluginManager_IO_WRITE) {
+			((vm::type::IoOutputHandle)io_writehandlers[0][port])(DosBoxPluginManager::getPluginInstance(), val, 1);
+		} else {
+			io_writehandlers[0][port](port,val,1);
+		}
 	}
 }
 
@@ -354,7 +360,12 @@ void IO_WriteW(Bitu port,Bitu val) {
 	}
 	else {
 		IO_USEC_write_delay();
-		io_writehandlers[1][port](port,val,2);
+
+		if (DosBoxPluginManager::ioType[port] & DosBoxPluginManager_IO_WRITE) {
+			((vm::type::IoOutputHandle)io_writehandlers[1][port])(DosBoxPluginManager::getPluginInstance(), val, 2);
+		} else {
+			io_writehandlers[1][port](port,val,2);
+		}
 	}
 }
 
@@ -388,7 +399,13 @@ void IO_WriteD(Bitu port,Bitu val) {
 		memcpy(&lflags,&old_lflags,sizeof(LazyFlags));
 		cpudecoder=old_cpudecoder;
 	}
-	else io_writehandlers[2][port](port,val,4);
+	else {
+		if (DosBoxPluginManager::ioType[port] & DosBoxPluginManager_IO_WRITE) {
+			((vm::type::IoOutputHandle)io_writehandlers[2][port])(DosBoxPluginManager::getPluginInstance(), val, 4);
+		} else {
+			io_writehandlers[2][port](port,val,1);
+		}
+	}
 }
 
 Bitu IO_ReadB(Bitu port) {
@@ -422,7 +439,13 @@ Bitu IO_ReadB(Bitu port) {
 	}
 	else {
 		IO_USEC_read_delay();
-		retval = io_readhandlers[0][port](port,1);
+
+		if (DosBoxPluginManager::ioType[port] & DosBoxPluginManager_IO_READ) {
+			retval = ((vm::type::IoInputHandle)io_readhandlers[0][port])(DosBoxPluginManager::getPluginInstance(), 1);
+		} else {
+			retval = io_readhandlers[0][port](port,1);
+		}
+		
 	}
 	log_io(0, false, port, retval);
 	return retval;
@@ -458,7 +481,11 @@ Bitu IO_ReadW(Bitu port) {
 	}
 	else {
 		IO_USEC_read_delay();
-		retval = io_readhandlers[1][port](port,2);
+		if (DosBoxPluginManager::ioType[port] & DosBoxPluginManager_IO_READ) {
+			retval = ((vm::type::IoInputHandle)io_readhandlers[1][port])(DosBoxPluginManager::getPluginInstance(), 2);
+		} else {
+			retval = io_readhandlers[1][port](port,2);
+		}
 	}
 	log_io(1, false, port, retval);
 	return retval;
@@ -492,7 +519,11 @@ Bitu IO_ReadD(Bitu port) {
 		memcpy(&lflags,&old_lflags,sizeof(LazyFlags));
 		cpudecoder=old_cpudecoder;
 	} else {
-		retval = io_readhandlers[2][port](port,4);
+		if (DosBoxPluginManager::ioType[port] & DosBoxPluginManager_IO_READ) {
+			retval = ((vm::type::IoInputHandle)io_readhandlers[2][port])(DosBoxPluginManager::getPluginInstance(), 4);
+		} else {
+			retval = io_readhandlers[2][port](port,4);
+		}
 	}
 	log_io(2, false, port, retval);
 	return retval;

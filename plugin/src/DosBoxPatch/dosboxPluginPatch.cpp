@@ -33,6 +33,7 @@ DosBoxPluginManager::Properties  DosBoxPluginManager::properties;
 DosBoxPluginManager::Status      DosBoxPluginManager::status = NOT_LOADED;
 const char *                     DosBoxPluginManager::windowTitle = NULL;
 vm::type::MouseMoveEventHandle   DosBoxPluginManager::mouseMoveHnd = NULL; 
+Bit8u                            DosBoxPluginManager::ioType [64*1024];
 DosBoxPluginManager::CallRequestParams * DosBoxPluginManager::callRequestParams = NULL;
 
 DosBoxPluginManager::Properties::~Properties() { clear(); }
@@ -120,7 +121,8 @@ void DosBoxPluginManager::Properties::clear()
 ///////////////////////////////////////////////////////////////////////////////
 
 void DosBoxPluginManager::preInit(Config * config) {
-	memset(&callRequestParams, sizeof(callRequestParams), 0);
+	memset(&callRequestParams, 0, sizeof(callRequestParams));
+	memset (&ioType, 0, sizeof(ioType));
 
 	vmInfo.structSize = sizeof (vm::type::VirtualMachineInfo);
 	vmInfo.vm_version_major = VM_VERSION_MAJOR;
@@ -138,8 +140,6 @@ void DosBoxPluginManager::preInit(Config * config) {
 	vm.setMouseMoveEventHandle = VM_setMouseMoveEventHandle;
 	vm.setIoInputHandle = VM_setIoInputHandle;
 	vm.setIoOutputHandle = VM_setIoOutputHandle;
-	vm.getIoInputHandle = VM_getIoInputHandle;
-	vm.getIoOutputHandle = VM_getIoOutputHandle;
 	vm.callGuestFct = VM_callGuestFct;
 
 	config->AddSection_line("plugin", &DosBox_initParameter);
@@ -464,10 +464,6 @@ const vm::type::MouseMoveEventHandle DosBoxPluginManager::VM_setMouseMoveEventHa
 	return retVal;
 }
 
-const vm::type::IoOutputHandle DosBoxPluginManager::VM_getIoOutputHandle (unsigned short port) {
-	return io_writehandlers[0][port];
-}
-
 int DosBoxPluginManager::VM_setIoOutputHandle (unsigned short port, vm::type::IoOutputHandle pHnd, unsigned char len) {
 #ifdef _DEBUG
 	if (pHnd == NULL) {
@@ -477,23 +473,23 @@ int DosBoxPluginManager::VM_setIoOutputHandle (unsigned short port, vm::type::Io
 	}
 #endif
 
-	if (pHnd == NULL) { pHnd = IO_WriteDefault; }
+	if (pHnd == NULL) { 
+		pHnd = (vm::type::IoOutputHandle)IO_WriteDefault; 
+		ioType[port] &= 0xFFFE;
+	}
 	switch(len) {
 		case 4:
-			io_writehandlers[2][port] = pHnd;
+			io_writehandlers[2][port] = (IO_WriteHandler *) pHnd;
 		case 2:
-			io_writehandlers[1][port] = pHnd;
+			io_writehandlers[1][port] = (IO_WriteHandler *) pHnd;
 		case 1:
-			io_writehandlers[0][port] = pHnd;
+			io_writehandlers[0][port] = (IO_WriteHandler *) pHnd;
+			ioType[port] |= 1;
 			return VM_NO_ERROR;
 
 		default:
 			return VM_ERROR_BAD_PARAMETER_VALUE;
 	}
-}
-
-const vm::type::IoInputHandle DosBoxPluginManager::VM_getIoInputHandle (unsigned short port) {
-	return io_readhandlers[0][port];
 }
 
 int DosBoxPluginManager::VM_setIoInputHandle  (unsigned short port, vm::type::IoInputHandle  pHnd, unsigned char len) {
@@ -505,14 +501,18 @@ int DosBoxPluginManager::VM_setIoInputHandle  (unsigned short port, vm::type::Io
 	}
 #endif
 
-	if (pHnd == NULL) { pHnd = IO_ReadDefault; }
+	if (pHnd == NULL) { 
+		pHnd = (vm::type::IoInputHandle)IO_ReadDefault; 
+		ioType[port] &= 0xFFFD;
+	}
 	switch(len) {
 		case 4:
-			io_readhandlers[2][port] = pHnd;
+			io_readhandlers[2][port] = (IO_ReadHandler *) pHnd;
 		case 2:
-			io_readhandlers[1][port] = pHnd;
+			io_readhandlers[1][port] = (IO_ReadHandler *) pHnd;
 		case 1:
-			io_readhandlers[0][port] = pHnd;
+			io_readhandlers[0][port] = (IO_ReadHandler *) pHnd;
+			ioType[port] |= 2;
 			return VM_NO_ERROR;
 
 		default:

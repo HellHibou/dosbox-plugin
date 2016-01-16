@@ -17,6 +17,9 @@
 #include "Control.h"
 #include "regs.h"
 
+#define DosBoxPluginManager_IO_READ  1
+#define DosBoxPluginManager_IO_WRITE 2
+
 class DosBoxPluginManager
 {
 private:
@@ -58,11 +61,11 @@ private:
 
 	static vm::type::VirtualMachine         vm;
 	static vm::type::VirtualMachineInfo     vmInfo;
-	static vm::Plugin *                     plugin;
 	static DOS_Shell *                      shell;
 	static Status			                status;
 	static DosBoxPluginManager::Properties  properties;
 	static CallRequestParams *              callRequestParams;
+	static vm::Plugin * plugin;
 
 	static void DosBox_initParameter  (Section * section);
 	static void DosBoxCallRequestHandle (unsigned int id); 
@@ -77,22 +80,20 @@ private:
 	static const vm::type::MouseMoveEventHandle VM_setMouseMoveEventHandle (vm::type::MouseMoveEventHandle mHnd);
 	static int									VM_setIoOutputHandle   (unsigned short port, vm::type::IoOutputHandle pHnd, unsigned char len);
 	static int									VM_setIoInputHandle    (unsigned short port, vm::type::IoInputHandle  pHnd, unsigned char len);
-	static const vm::type::IoOutputHandle       VM_getIoOutputHandle   (unsigned short port);
-	static const vm::type::IoInputHandle        VM_getIoInputHandle    (unsigned short port);
 	static int                                  VM_callGuestFct        (unsigned int segment, unsigned int offset, unsigned int callTypeFlags, short stackCallArgc, unsigned short * stackCallArgs);
 
 public:
 	static const char * windowTitle;
 	static vm::type::MouseMoveEventHandle mouseMoveHnd; 
-
+	static Bit8u  ioType [64*1024];
+	
 	static void preInit(Config * config);
 	static void postInit(DOS_Shell * shell);
 	static void start();
 	static void unload();
 
-	static inline int shutdownRequest() {
-		return plugin->shutdownRequest();
-	}
+	static inline int shutdownRequest() { return plugin->shutdownRequest(); }
+	static inline void * getPluginInstance() { return plugin->getPluginInstance(); }
 };
 
 #endif

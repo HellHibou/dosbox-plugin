@@ -1463,7 +1463,8 @@ static void HandleMouseMotion(SDL_MouseMotionEvent * motion) {
 						  sdl.mouse.locked);
 
 		if (DosBoxPluginManager::mouseMoveHnd != NULL) { 
-			DosBoxPluginManager::mouseMoveHnd(motion->x, motion->y); }
+			DosBoxPluginManager::mouseMoveHnd(DosBoxPluginManager::getPluginInstance(), motion->x, motion->y); 
+		}
 	}
 }
 

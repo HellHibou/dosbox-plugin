@@ -58,6 +58,12 @@ namespace vm
 			int getClassInitError();
 
 			/**
+			 * \brief Get plugin instance (can be NULL).
+			 * \return Plugin instance.
+			 */
+			inline void * getPluginInstance() { return instance; }
+
+			/**
 			 * \brief Get full path of plugin library.
 			 * \return Full path of plugin library or NULL if lilbrary not loaded. 
 			 */

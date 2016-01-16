@@ -49,3 +49,4 @@ visualc_net/ipch
 plugin/src/Win16Plugin/*/*.DSW
 plugin/src/Win16Plugin/*/*.RWS
 plugin/src/Win16Plugin/GUEST/GUEST.CSM
+plugin/src/Win16Plugin/GUEST/GUESTW16.OBR

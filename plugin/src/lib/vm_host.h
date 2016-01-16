@@ -91,25 +91,26 @@ typedef unsigned int (* InterruptHandle)();
 
 /**
  * \brief Mouse moved event hanlde.
+ * \param instance Pointer to instance of plugin.
  * \param x New X position of mouse pointer.
  * \param y New Y position of mouse pointer.
  */
-typedef void (* MouseMoveEventHandle)(int x, int y);
+typedef void (* MouseMoveEventHandle)(void * instance, int x, int y);
 
 /**
  * \brief Port writer handle.
- * \param port Port number.
+ * \param instance Pointer to instance of plugin.
  * \param val Value to write.
  * \param len Data size to write in bytes (1, 2 or 4).
  */
-typedef void (* IoOutputHandle)(unsigned int port, unsigned int val, unsigned int len);
+typedef void (* IoOutputHandle)(void * instance, unsigned int val, unsigned int len);
 
 /**
  * \brief Port reader handle.
- * \param port Port to read.
+ * \param instance Pointer to instance of plugin.
  * \param len Data size to read in bytes (1, 2 or 4).
  */
-typedef unsigned int (* IoInputHandle)(unsigned int port, unsigned int len);
+typedef unsigned int (* IoInputHandle)(void * instance, unsigned int len);
 
 /**
  * \struct VirtualMachineInfo
@@ -197,13 +198,6 @@ struct VirtualMachine
 	int (*setIoOutputHandle) (unsigned short port, IoOutputHandle pHnd, unsigned char len);
 
 	/**
-	 * \brief Get port output handle.
-	 * \param port Port number.
-	 * \return Port output handle.
-	 */
-	const IoOutputHandle (*getIoOutputHandle) (unsigned short port);
-
-	/**
 	 * \brief Set port input handle.
 	 * \param port First port number to set.
 	 * \param pHnd Port input handle or null if port > 65536, len <> 1, 2, 4 or pHnd = NULL.
@@ -211,13 +205,6 @@ struct VirtualMachine
 	 * \return Error code or VM_NO_ERROR if no error.
 	 */
 	int (*setIoInputHandle) (unsigned short port, IoInputHandle pHnd, unsigned char len);
-
-	/**
-	 * \brief Get port input handle.
-	 * \param port Port number.
-	 * \return Port input handle.
-	 */
-	const IoInputHandle (*getIoInputHandle) (unsigned short port);
 
 	/**
      * \brief Call guest function.

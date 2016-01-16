@@ -41,14 +41,17 @@
 
 struct Instance /**< Plugin's instance. */
 {
+	void      * pointer;
+	char     ( * ( driveMap[42] ));
+	char           tmpAppDrive;
+
 #if defined (WIN32)
 	bool          mountIsoReplace;
 #else
 	char          firstCdRomLetter;
 	char          nextCdRomLetter;
 #endif
-	char     ( * ( driveMap[42] ));
-	char           tmpAppDrive;
+
 };
 
 //////////////////////////////////////////////////////////////////////////////////////
