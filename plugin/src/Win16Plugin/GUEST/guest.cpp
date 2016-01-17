@@ -4,6 +4,8 @@
  * \version 0.1
  * \date 09/01/2016
  */
+
+#define STRICT
 #include <windows.h>
 #include <stdio.h>
 #include <string.h>
@@ -17,6 +19,7 @@ const char AppTitle [] = "DosBox Integration Tool";
 IntegrationToolGuest integrationTool = IntegrationToolGuest();
 char timerLock = 0;
 unsigned short oldMouseParam [3] = { 0, 0, 0 };
+
 
 void CALLBACK timer(HWND /*hwnd*/, UINT /*uMsg*/, UINT /*timerId*/, DWORD /*dwTime*/ ) {
 	if (timerLock == 0) {
@@ -76,7 +79,7 @@ void Initialize(HINSTANCE hinst)  {
 	////////////////////////////////////////////////////////////
 
 	atexit(beforeExit);
-	SetTimer(NULL, 0, 50,(TIMERPROC) timer);
+ 	SetTimer(NULL, 0, 50,(TIMERPROC) timer);
 }
 
 int PASCAL WinMain (HINSTANCE hinst, HINSTANCE prev_inst, LPSTR /*cmdline*/, int /*cmdshow*/) {

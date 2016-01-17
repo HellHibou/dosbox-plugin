@@ -1,7 +1,7 @@
 /**
  * \brief Virtual machine's guest pipe I/O library.
  * \author Jeremy Decker
- * \version 0.1
+ * \version 0.3
  * \date 04/01/2016
  */
 
@@ -17,11 +17,11 @@
 
 static const char sign[] = "VMP\0";
 
-PipeIoGuest::PipeIoGuest(unsigned int myPort) {
+PipeIoGuest::PipeIoGuest(unsigned short myPort) {
 	port = myPort;
 }
 
-void PipeIoGuest::writeBlock (void * data, unsigned short size) {
+volatile void PipeIoGuest::WriteBlock (unsigned short port, void * data, unsigned short size) {
 	outport (port, *(short *) sign);
 	outport (port, ((short *) sign)[1]);
 	outport (port, size);
@@ -33,7 +33,7 @@ void PipeIoGuest::writeBlock (void * data, unsigned short size) {
 	};
 };
 
-int PipeIoGuest::readBlock(void * data, unsigned short size) {
+volatile int PipeIoGuest::ReadBlock(unsigned short port, void * data, unsigned short size) {
 	int index = 0;
 	while (index < 4)
 	{

@@ -1,7 +1,7 @@
 /**
  * \brief Virtual machine's integration tool guest.
  * \author Jeremy Decker
- * \version 0.1
+ * \version 0.3
  * \date 09/01/2016
  */
 
@@ -36,20 +36,20 @@ const char * IntegrationToolGuest::Exception::getMessage() { return msg; }
 ////////////////////////////////////////////////////////////////////////////////////////
 
 IntegrationToolGuest::IntegrationToolGuest() {
-	io = NULL;
 	memset (&dataBlock, sizeof(dataBlock), 0);
+	port = 0;
 }
 
-IntegrationToolGuest::Exception * IntegrationToolGuest::Connect(unsigned short ioPort) {
-	if (io != NULL) {
-		return new IntegrationToolGuest::Exception(-1, "Connection already open.");
-	}
+ IntegrationToolGuest::Exception * IntegrationToolGuest::Connect(unsigned short ioPort) {
+
+	if (ioPort == 0) { return new IntegrationToolGuest::Exception(-1, "Port number cannot be null."); }
+	if (port != 0)   { return new IntegrationToolGuest::Exception(-2, "Connection already open."); }
 
 	DataTransfertBlock initDataBlock;
-	io = new PipeIoGuest(ioPort);
 	memset (&dataBlock, sizeof(dataBlock), 0);
+	port = 0;
 
-	int readedSize = io->readBlock (&initDataBlock, sizeof(DataTransfertBlock));
+	int readedSize = PipeIoGuest::ReadBlock (ioPort, &initDataBlock, sizeof(DataTransfertBlock));
 
 	if (readedSize < 7) {
 		return new Exception(1, "Invalid port number : 0x%X", ioPort);
@@ -71,19 +71,19 @@ IntegrationToolGuest::Exception * IntegrationToolGuest::Connect(unsigned short i
 		return new Exception(4, "Invalid data protocol");
 	}
 
+	port = ioPort;
 	return NULL;
 };
 
-void  IntegrationToolGuest::Disconnect() {
-	if (io == NULL) { return; }
+void IntegrationToolGuest::Disconnect() {
+	if (port == 0) { return; }
 	dataBlock.function = INTEGRATION_TOOL_FCT_UNINIT;
-	io->writeBlock (&dataBlock, 2);
-	delete io;
-	io = NULL;
+	PipeIoGuest::WriteBlock (port, &dataBlock, 2);
+	port = 0;
 }
 
 void IntegrationToolGuest::InitHost(const char guestId[8]) {
-	if (io == NULL) { return; }
+	if (port == 0) { return; }
 
 	dataBlock.function = INTEGRATION_TOOL_FCT_INIT;
 	strcpy (dataBlock.data.initGuest.magic, INTEGRATION_TOOL_MAGIC);
@@ -91,7 +91,7 @@ void IntegrationToolGuest::InitHost(const char guestId[8]) {
 	dataBlock.data.initGuest.majorVersion = INTEGRATION_TOOL_MAJOR_VERSION;
 	dataBlock.data.initGuest.minorVersion = INTEGRATION_TOOL_MINOR_VERSION;
 	dataBlock.data.initGuest.guestFunctionHandlesCount = INTEGRATION_TOOL_COUNT_STD_GUEST_FUNCTIONS;
-	io->writeBlock (&dataBlock, sizeof(DataTransfertBlock::Data::InitGuest) + 2);
+	PipeIoGuest::WriteBlock(port, &dataBlock, sizeof(DataTransfertBlock::Data::InitGuest) + 2);
 
 	dataBlock.function = INTEGRATION_TOOL_FCT_SYNC;
 };

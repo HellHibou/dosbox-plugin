@@ -1,7 +1,7 @@
 /**
  * \brief Virtual machine's integration tool guest.
  * \author Jeremy Decker
- * \version 0.1
+ * \version 0.3
  * \date 09/01/2016
  */
 
@@ -22,7 +22,7 @@ inline void define ## FCT (void * function, unsigned short flags) {           \
 /** \brief Virtual machine's integration tool guest. */
 class IntegrationToolGuest {
 	private:
-		PipeIoGuest *      io;
+		unsigned short port;
 		DataTransfertBlock dataBlock;
 
 	public:
@@ -76,7 +76,8 @@ class IntegrationToolGuest {
 		/**
 		 * \brief Send timer request to host.
 		 */
-		inline void TimerRequest() { io->writeBlock (&dataBlock, 2); }	
+		inline void TimerRequest() { PipeIoGuest::WriteBlock (port, &dataBlock, 2); }	
+
 
 		/**
 		 * \fn defineSetMousePos
