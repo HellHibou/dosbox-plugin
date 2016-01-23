@@ -1,7 +1,7 @@
 /**
  * \brief Virtual machine integration tool guest/host common structures.
  * \author Jeremy Decker
- * \version 0.1
+ * \version 0.3
  * \date 09/01/2016
  */
 #pragma once
@@ -28,6 +28,9 @@
 
 /** Function code : Syncrhonize host and guest. */
 #define INTEGRATION_TOOL_FCT_SYNC 2 
+
+/** Function code : Set clipoard content. */
+#define INTEGRATION_TOOL_FCT_SET_CLIPBOARD_CONTENT 3 
 
 /** Number of function into StdGuestFunctionHandles. */
 #define INTEGRATION_TOOL_COUNT_STD_GUEST_FUNCTIONS (sizeof (StdGuestFunctionHandles) / sizeof(GuestHandle))
@@ -131,6 +134,16 @@ struct DataTransfertBlock {
 
 		} initGuest;
 	} data;
+};
+
+/** \brief Hearder of clipboard data bloc. */
+struct ClipboardBlocHeader {
+
+	/** \brief Content type code (defined by windows clipboard content type). */
+	unsigned short contentType;
+
+	/** \brief Size of data clipboard bloc. */
+	unsigned long  dataSize;
 };
 
 #pragma pack(pop)

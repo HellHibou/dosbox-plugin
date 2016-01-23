@@ -78,6 +78,13 @@ class IntegrationToolGuest {
 		 */
 		inline void TimerRequest() { PipeIoGuest::WriteBlock (port, &dataBlock, 2); }	
 
+		#if defined(_WIN32) || defined(_WIN16)
+		/**
+		 * \brief Send clipboard content to host.
+		 * \param hwnd Window handle.
+		 */
+		void SendClipboardData(void * hwnd);
+		#endif
 
 		/**
 		 * \fn defineSetMousePos

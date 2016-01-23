@@ -1,7 +1,7 @@
 /**
  * \brief Integration's tool windows 16 bits guest application.
  * \author Jeremy Decker
- * \version 0.1
+ * \version 0.2
  * \date 09/01/2016
  */
 
@@ -15,11 +15,15 @@
 
 #define INTEGRATION_TOOL_GUEST_ID "WIN16  "
 
+const char AppName[] = "GuestWin16";
 const char AppTitle [] = "DosBox Integration Tool";
 IntegrationToolGuest integrationTool = IntegrationToolGuest();
 char timerLock = 0;
 unsigned short oldMouseParam [3] = { 0, 0, 0 };
+static HWND hwndNextClpViewer;
+static HWND hwnd;
 
+LRESULT CALLBACK WndProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
 
 void CALLBACK timer(HWND /*hwnd*/, UINT /*uMsg*/, UINT /*timerId*/, DWORD /*dwTime*/ ) {
 	if (timerLock == 0) {
@@ -33,14 +37,41 @@ void beforeExit() {
 	KillTimer(NULL, NULL);
 	integrationTool.Disconnect();
 	SystemParametersInfo(SPI_SETMOUSE, 0, &oldMouseParam, 0);
+	ChangeClipboardChain (hwnd, hwndNextClpViewer);
 }
 
 void ShutdownRequest() {
 	ExitWindows(0,0);
 }
 
-void Initialize(HINSTANCE hinst)  {
+void Initialize(HINSTANCE hinst) {
+	//////////////////////////////////////////////////////////
+	// Initialize application and unused window (required for Windows interactions)
+	//////////////////////////////////////////////////////////
+	WNDCLASS               wndclass;
+	wndclass.style         = 0;//CS_HREDRAW | CS_VREDRAW ;
+	wndclass.lpfnWndProc   = WndProc ;
+	wndclass.cbClsExtra    = 0 ;
+	wndclass.cbWndExtra    = 0 ;
+	wndclass.hInstance     = hinst ;
+	wndclass.hIcon         = LoadIcon (NULL, IDI_APPLICATION) ;
+	wndclass.hCursor       = LoadCursor (NULL, IDC_ARROW) ;
+	wndclass.hbrBackground = /*(HBRUSH) GetStockObject (WHITE_BRUSH)*/ 0;
+	wndclass.lpszMenuName  = NULL ;
+	wndclass.lpszClassName = AppName ;
+
+	if (!RegisterClass (&wndclass)) {
+		MessageBox (NULL, "This program requires Windows 3.1",  AppTitle, MB_ICONHAND | MB_OK) ;
+		exit (2);
+	}
+
+	hwnd = CreateWindow (AppName, AppTitle, WS_OVERLAPPEDWINDOW, CW_USEDEFAULT,
+			CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, NULL, NULL, hinst, NULL) ;
+
+
+	//////////////////////////////////////////////////////////
 	// Read configuration file
+	//////////////////////////////////////////////////////////
 	char * filename = (char*) malloc(2048);
 	GetModuleFileName (hinst, filename, 2048);
 	strcpy (filename + strlen (filename) - 3, "cfg");
@@ -61,7 +92,10 @@ void Initialize(HINSTANCE hinst)  {
 
 	delete cfg;
 
-	// Initialisation
+
+	//////////////////////////////////////////////////////////
+	// Initialize integration tools.
+	//////////////////////////////////////////////////////////
 	IntegrationToolGuest::Exception * e = integrationTool.Connect(ioPort);
 	if (e) {
 		MessageBox(NULL, e->getMessage(), AppTitle, MB_ICONHAND | MB_OK);
@@ -71,15 +105,41 @@ void Initialize(HINSTANCE hinst)  {
 	integrationTool.defineSetMousePos(SetCursorPos, VM_CALL_FLAG_16BITS | VM_CALL_FLAG_PASCAL);
 	integrationTool.defineShutdownRequest(ShutdownRequest, VM_CALL_FLAG_16BITS | VM_CALL_FLAG_C);
 	integrationTool.InitHost(INTEGRATION_TOOL_GUEST_ID);
+	atexit(beforeExit);
+
+	// Initialize clipboard Hook
+	hwndNextClpViewer = SetClipboardViewer (hwnd);
 
 	// For fluid mouse movement, set mouse speed to low value...
 	SystemParametersInfo(SPI_GETMOUSE, 0, &oldMouseParam, 0);
 	unsigned short mouseParam [3] = { 6, 10, 1 };
 	SystemParametersInfo(SPI_SETMOUSE, 0, &mouseParam, 0);
-	////////////////////////////////////////////////////////////
 
-	atexit(beforeExit);
- 	SetTimer(NULL, 0, 50,(TIMERPROC) timer);
+
+	// Enable host communication
+	SetTimer(NULL, 0, 50,(TIMERPROC) timer);
+}
+
+LRESULT CALLBACK WndProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
+	switch (message) {
+
+		////////////////////////////////////////////
+		// Transfert clipboard from guest to host
+		////////////////////////////////////////////
+		case WM_CHANGECBCHAIN:
+			if ((HWND) wParam == hwndNextClpViewer) { hwndNextClpViewer = (HWND) lParam; }
+			else if (hwndNextClpViewer) { SendMessage (hwndNextClpViewer, message, wParam, lParam); }
+			return 0;
+
+		case WM_DRAWCLIPBOARD:  {
+			integrationTool.SendClipboardData ((void*)hwnd);
+			if (hwndNextClpViewer) { SendMessage (hwndNextClpViewer, message, wParam, lParam) ; }
+			return 0;
+		}
+		////////////////////////////////////////////
+
+    }
+    return DefWindowProc (hwnd, message, wParam, lParam) ;
 }
 
 int PASCAL WinMain (HINSTANCE hinst, HINSTANCE prev_inst, LPSTR /*cmdline*/, int /*cmdshow*/) {

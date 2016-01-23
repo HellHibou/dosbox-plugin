@@ -1,15 +1,23 @@
 /**
  * \brief Virtual machine's integration tool host.
  * \author Jeremy Decker
- * \version 0.1
+ * \version 0.3
  * \date 09/01/2016
  */
 
 #include "IntegrationHost.hpp"
 
+#ifdef WIN32
+	#include <Windows.h>
+#endif
+
 #ifdef _MSC_VER
 	#pragma warning(disable:4996)
 #endif
+
+#define READ_TYPE_DEFAULT           0
+#define READ_TYPE_CLIPBOARD         1
+#define READ_TYPE_CLIPBOARD_CONTENT 2
 
 namespace vm {
 	void IntegrationToolHost::clear() {
@@ -18,6 +26,14 @@ namespace vm {
 		argsSetCursorPos.x = 32765;
 		argsSetCursorPos.y = 32765;
 		mouseMoved = true;
+		readType = READ_TYPE_DEFAULT;
+		dataReaded = 0;
+
+
+		if (hClipboardBuffer) {
+			GlobalFree(hClipboardBuffer);
+			hClipboardBuffer = NULL;
+		}
 
 		writeBlock.function = INTEGRATION_TOOL_FCT_INIT;
 		memcpy(&writeBlock.data.initHost.magic, INTEGRATION_TOOL_MAGIC, sizeof(writeBlock.data.initHost.magic));
@@ -30,6 +46,8 @@ namespace vm {
 
 	IntegrationToolHost::IntegrationToolHost(vm::type::VirtualMachine * myVM) {
 		virtualMachine = myVM;
+		hClipboardBuffer = NULL;
+		clipboardBuffer = NULL;
 		clear();
 	}
 
@@ -143,6 +161,21 @@ namespace vm {
 
 
 			//////////////////////////////////////////////////////////////
+			// Transfert clipboard from guest to host.
+			//////////////////////////////////////////////////////////////
+			case INTEGRATION_TOOL_FCT_SET_CLIPBOARD_CONTENT:
+				#ifdef _DEBUG
+					virtualMachine->logMessage(VMHOST_LOG_DEBUG, "Start clipboard transfert from guest.");
+				#endif
+
+				readType = READ_TYPE_CLIPBOARD;
+				dataReaded = 0;
+				OpenClipboard(NULL);
+				EmptyClipboard();
+				break;
+
+
+			//////////////////////////////////////////////////////////////
 			// Unnkow function
 			//////////////////////////////////////////////////////////////
 		#ifdef _DEBUG
@@ -152,6 +185,84 @@ namespace vm {
 				virtualMachine->logMessage(VMHOST_LOG_DEBUG, buffer);
 			}
 		#endif
+		}
+	}
+
+	void IntegrationToolHost::read (unsigned int val, unsigned short iolen) {
+		switch (readType) {
+			case READ_TYPE_DEFAULT:
+				vm::PipeIoHost::read(val, iolen);
+				break;
+
+			//////////////////////////////////////////////////////////////
+			// Transfert clipboard from guest to host.
+			//////////////////////////////////////////////////////////////
+			case READ_TYPE_CLIPBOARD:
+				strncpy(((char*) &clipboardBloc)+dataReaded, (char*)&val, iolen);
+				dataReaded += iolen;
+
+				if (dataReaded >= sizeof(clipboardBloc)) {
+					if (clipboardBloc.dataSize == 0L) {
+						if (clipboardBloc.contentType == 0) {
+							CloseClipboard();
+							readType = READ_TYPE_DEFAULT; 
+
+						#ifdef _DEBUG
+							virtualMachine->logMessage(VMHOST_LOG_DEBUG, "Clipboard transfered complete.");
+						#endif
+						} else {
+							SetClipboardData(clipboardBloc.contentType, NULL);
+						#ifdef _DEBUG
+							char * msgBuffer = (char*) malloc (128);
+							sprintf(msgBuffer, "Set clipboard data type=%i size=%i", (int)clipboardBloc.contentType, clipboardBloc.dataSize);
+							virtualMachine->logMessage(VMHOST_LOG_DEBUG, msgBuffer);
+							free(msgBuffer);
+						#endif
+						}
+						dataReaded = 0;	
+						return;
+					}
+
+				#ifdef WIN32
+					hClipboardBuffer = GlobalAlloc(GMEM_MOVEABLE, clipboardBloc.dataSize);
+					if (!hClipboardBuffer) {
+						clipboardBuffer = NULL;
+						return;
+					}		
+
+					clipboardBuffer = (char*)GlobalLock(hClipboardBuffer);
+				#endif
+					dataReaded = 0;
+					readType = READ_TYPE_CLIPBOARD_CONTENT; 
+					return;
+				}
+				break;
+
+			case READ_TYPE_CLIPBOARD_CONTENT: // Read clipboard item
+				#ifdef WIN32
+					strncpy(clipboardBuffer, (char*) &val, iolen);
+					clipboardBuffer+=iolen;
+				#endif
+
+				dataReaded += iolen;
+				if (dataReaded >= clipboardBloc.dataSize) { 
+					#ifdef WIN32
+							GlobalUnlock(hClipboardBuffer);
+							SetClipboardData(clipboardBloc.contentType, hClipboardBuffer);
+							GlobalFree(hClipboardBuffer); 
+							hClipboardBuffer = NULL;
+					
+						#ifdef _DEBUG
+							char * msgBuffer = (char*) malloc (128);
+							sprintf(msgBuffer, "Set clipboard data : content-id=%i, content-size=%i", (int)clipboardBloc.contentType, clipboardBloc.dataSize);
+							virtualMachine->logMessage(VMHOST_LOG_DEBUG, msgBuffer);
+							free(msgBuffer);
+						#endif
+					#endif
+					readType = READ_TYPE_CLIPBOARD; 
+					dataReaded = 0;
+				}
+				break;
 		}
 	}
 

@@ -33,6 +33,15 @@ volatile void PipeIoGuest::WriteBlock (unsigned short port, void * data, unsigne
 	};
 };
 
+volatile void PipeIoGuest::Write (unsigned short port, void * data, unsigned int size) {
+	char * ptr = (char *)data;
+	while (size > 0) {
+		outportb (port, *ptr);
+		size --;
+		ptr++;
+	};
+};
+
 volatile int PipeIoGuest::ReadBlock(unsigned short port, void * data, unsigned short size) {
 	int index = 0;
 	while (index < 4)

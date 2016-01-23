@@ -12,6 +12,10 @@
 #include "vmitg.hpp"
 #include "vmitt.h"
 
+#if defined(_WIN32) || defined(_WIN16)
+	#include <windows.h>
+#endif
+
 IntegrationToolGuest::Exception::Exception(int myCode, char * myMsg, ...) {
 	code = myCode;
 	if (myMsg == NULL) { 
@@ -95,3 +99,41 @@ void IntegrationToolGuest::InitHost(const char guestId[8]) {
 
 	dataBlock.function = INTEGRATION_TOOL_FCT_SYNC;
 };
+
+#if defined(_WIN32) || defined(_WIN16)
+void IntegrationToolGuest::SendClipboardData(void * hwnd) {
+	if (CountClipboardFormats() == 0) { return;}
+	if (OpenClipboard ((HWND)hwnd) == FALSE) { return; }
+	dataBlock.function = INTEGRATION_TOOL_FCT_SET_CLIPBOARD_CONTENT;
+	PipeIoGuest::WriteBlock(port, &dataBlock, 2);
+	ClipboardBlocHeader clpBloc;
+	clpBloc.contentType = EnumClipboardFormats(0);
+
+ 	while (clpBloc.contentType) {
+		if (clpBloc.contentType <= CF_GDIOBJLAST) { /**< Skip Non-standard format. */
+			HGLOBAL hGlobal = GetClipboardData (clpBloc.contentType);
+
+			if (hGlobal != NULL)  {
+				char * pGlobal = (char *) GlobalLock (hGlobal);
+				clpBloc.dataSize = GlobalSize(hGlobal);
+
+				if (clpBloc.dataSize > 0) {
+					PipeIoGuest::Write(port, &clpBloc, sizeof(ClipboardBlocHeader));
+					PipeIoGuest::Write(port, pGlobal, clpBloc.dataSize);
+				}
+
+				GlobalUnlock(hGlobal);
+			}
+		}
+
+		clpBloc.contentType = EnumClipboardFormats(clpBloc.contentType); 
+	}
+
+
+	clpBloc.contentType = 0;
+	clpBloc.dataSize = 0;
+	PipeIoGuest::Write(port, &clpBloc, sizeof(ClipboardBlocHeader));
+	CloseClipboard ();
+	dataBlock.function = INTEGRATION_TOOL_FCT_SYNC;
+};
+#endif

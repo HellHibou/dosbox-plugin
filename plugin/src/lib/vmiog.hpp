@@ -22,7 +22,7 @@ class PipeIoGuest {
 		PipeIoGuest(unsigned short port);
 
 		/**
-		 * \brief Send data block to virtual machine's plugin.
+		 * \brief Send formated data block to virtual machine's plugin.
 		 * \param port Hardware port number used to communicate with host. 
 		 * \param data Data's pointer to send.
 		 * \param size Data size. 
@@ -30,13 +30,21 @@ class PipeIoGuest {
 		static volatile void WriteBlock (unsigned short port, void * data, unsigned short size);
 
 		/**
-		 * \brief Read data block from virtual machine's plugin.
+		 * \brief Read formated data block from virtual machine's plugin.
 		 * \param port Hardware port number used to communicate with host. 
 		 * \param data Data's pointer to recieve.
 		 * \param size Maximum data size. 
 		 * \return If communication error, return negative value; else return recieved data size, if returned value > size, recieved data is truncate.
 		 */
 		static volatile int ReadBlock (unsigned short port, void * data, unsigned short size);
+
+		/**
+		 * \brief Send un-formated data block to virtual machine's plugin.
+		 * \param port Hardware port number used to communicate with host. 
+		 * \param data Data's pointer to send.
+		 * \param size Data size. 
+		 */
+		static volatile void Write (unsigned short port, void * data, unsigned int size);
 
 		/**
 		 * \brief Send data block to virtual machine's plugin.
