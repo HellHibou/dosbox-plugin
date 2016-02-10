@@ -1,7 +1,7 @@
 /**
  * \brief Integration's tool windows 16 bits guest application.
  * \author Jeremy Decker
- * \version 0.2
+ * \version 0.3
  * \date 09/01/2016
  */
 
@@ -21,7 +21,7 @@ IntegrationToolGuest integrationTool = IntegrationToolGuest();
 char timerLock = 0;
 unsigned short oldMouseParam [3] = { 0, 0, 0 };
 static HWND hwndNextClpViewer;
-static HWND hwnd;
+static HWND winHwnd;
 
 LRESULT CALLBACK WndProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
 
@@ -37,37 +37,44 @@ void beforeExit() {
 	KillTimer(NULL, NULL);
 	integrationTool.Disconnect();
 	SystemParametersInfo(SPI_SETMOUSE, 0, &oldMouseParam, 0);
-	ChangeClipboardChain (hwnd, hwndNextClpViewer);
+	ChangeClipboardChain (winHwnd, hwndNextClpViewer);
 }
 
 void ShutdownRequest() {
 	ExitWindows(0,0);
+}
+static BOOL clipboardLock = FALSE;
+void SetCliboardContent () {
+	clipboardLock = TRUE;
+	integrationTool.ReceptClipboardData((void *)winHwnd);
+	clipboardLock = FALSE;
 }
 
 void Initialize(HINSTANCE hinst) {
 	//////////////////////////////////////////////////////////
 	// Initialize application and unused window (required for Windows interactions)
 	//////////////////////////////////////////////////////////
-	WNDCLASS               wndclass;
-	wndclass.style         = 0;//CS_HREDRAW | CS_VREDRAW ;
-	wndclass.lpfnWndProc   = WndProc ;
-	wndclass.cbClsExtra    = 0 ;
-	wndclass.cbWndExtra    = 0 ;
-	wndclass.hInstance     = hinst ;
-	wndclass.hIcon         = LoadIcon (NULL, IDI_APPLICATION) ;
-	wndclass.hCursor       = LoadCursor (NULL, IDC_ARROW) ;
-	wndclass.hbrBackground = /*(HBRUSH) GetStockObject (WHITE_BRUSH)*/ 0;
-	wndclass.lpszMenuName  = NULL ;
-	wndclass.lpszClassName = AppName ;
+	WNDCLASS  wndclass;
+	if (!GetClassInfo(hinst, AppName, &wndclass)) {
+		wndclass.style         = 0;
+		wndclass.lpfnWndProc   = WndProc ;
+		wndclass.cbClsExtra    = 0 ;
+		wndclass.cbWndExtra    = 0 ;
+		wndclass.hInstance     = hinst ;
+		wndclass.hIcon         = LoadIcon (NULL, IDI_APPLICATION) ;
+		wndclass.hCursor       = LoadCursor (NULL, IDC_ARROW) ;
+		wndclass.hbrBackground = 0;
+		wndclass.lpszMenuName  = NULL ;
+		wndclass.lpszClassName = AppName ;
+	}
 
 	if (!RegisterClass (&wndclass)) {
-		MessageBox (NULL, "This program requires Windows 3.1",  AppTitle, MB_ICONHAND | MB_OK) ;
+		MessageBox (NULL, "Can't register Window handle",  AppTitle, MB_ICONHAND | MB_OK) ;
 		exit (2);
 	}
 
-	hwnd = CreateWindow (AppName, AppTitle, WS_OVERLAPPEDWINDOW, CW_USEDEFAULT,
+	winHwnd = CreateWindow (AppName, AppTitle, WS_OVERLAPPEDWINDOW, CW_USEDEFAULT,
 			CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, NULL, NULL, hinst, NULL) ;
-
 
 	//////////////////////////////////////////////////////////
 	// Read configuration file
@@ -92,7 +99,6 @@ void Initialize(HINSTANCE hinst) {
 
 	delete cfg;
 
-
 	//////////////////////////////////////////////////////////
 	// Initialize integration tools.
 	//////////////////////////////////////////////////////////
@@ -104,11 +110,12 @@ void Initialize(HINSTANCE hinst) {
 
 	integrationTool.defineSetMousePos(SetCursorPos, VM_CALL_FLAG_16BITS | VM_CALL_FLAG_PASCAL);
 	integrationTool.defineShutdownRequest(ShutdownRequest, VM_CALL_FLAG_16BITS | VM_CALL_FLAG_C);
+	integrationTool.defineSetCliboardContent(SetCliboardContent, VM_CALL_FLAG_16BITS);
 	integrationTool.InitHost(INTEGRATION_TOOL_GUEST_ID);
 	atexit(beforeExit);
 
 	// Initialize clipboard Hook
-	hwndNextClpViewer = SetClipboardViewer (hwnd);
+	hwndNextClpViewer = SetClipboardViewer (winHwnd);
 
 	// For fluid mouse movement, set mouse speed to low value...
 	SystemParametersInfo(SPI_GETMOUSE, 0, &oldMouseParam, 0);
@@ -131,15 +138,16 @@ LRESULT CALLBACK WndProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 			else if (hwndNextClpViewer) { SendMessage (hwndNextClpViewer, message, wParam, lParam); }
 			return 0;
 
-		case WM_DRAWCLIPBOARD:  {
+		case WM_DRAWCLIPBOARD: if (clipboardLock == FALSE) {
+
 			integrationTool.SendClipboardData ((void*)hwnd);
 			if (hwndNextClpViewer) { SendMessage (hwndNextClpViewer, message, wParam, lParam) ; }
 			return 0;
 		}
 		////////////////////////////////////////////
 
-    }
-    return DefWindowProc (hwnd, message, wParam, lParam) ;
+	 }
+	 return DefWindowProc (hwnd, message, wParam, lParam) ;
 }
 
 int PASCAL WinMain (HINSTANCE hinst, HINSTANCE prev_inst, LPSTR /*cmdline*/, int /*cmdshow*/) {

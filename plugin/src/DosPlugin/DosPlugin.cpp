@@ -13,7 +13,19 @@
 	#pragma warning(disable:4996)
 #endif
 
-extern const char PLUGIN_INTRO [] = "Dos Plugin version 0.2\nCopyright 2015-2016 Hell Hibou";
+const char PLUGIN_INTRO [] = "Dos Plugin version 0.3\nCopyright 2015-2016 Hell Hibou";
+extern const int InstanceSize = sizeof(Instance);
+
+LIBRARY_API int VMPLUGIN_PreInit(vm::type::VirtualMachine * vm, void * myInstance) {
+	if (vm == NULL) { return VM_ERROR_NULL_POINTER_EXCEPTION; }
+	if (vm->structSize < sizeof(vm::type::VirtualMachine)) { return VM_ERROR_BAD_STRUCT_SIZE; }
+	Instance * instance = (Instance*)myInstance;
+
+	vm->logMessage(VMHOST_LOG_CONSOLE, "---");
+	vm->logMessage(VMHOST_LOG_CONSOLE, PLUGIN_INTRO);
+	vm->logMessage(VMHOST_LOG_CONSOLE, "---");
+	return Common_PreInit(vm, instance);
+}
 
 LIBRARY_API int VMPLUGIN_PostInit(vm::type::VirtualMachine * vm, void * myInstance)
 {

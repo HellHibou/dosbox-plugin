@@ -22,16 +22,22 @@ namespace vm {
 		dataWrite = NULL;
 	}
 
-	void PipeIoHost::setBufferRead(void * data, unsigned short dataSize) {
+	void PipeIoHost::setBlocRead(void * data, unsigned short dataSize) {
 		dataRead = (unsigned char *)data;
 		maxDataReadSize = dataSize;
 		readed = 0;
 	}
 
-	void PipeIoHost::setBufferWrite(void * data, unsigned short dataSize) {
+	void PipeIoHost::setBlocWrite(void * data, unsigned short dataSize) {
 		dataWrite = (unsigned char *)data;
 		dataToWrite = dataSize;
 		writed = 0;
+	}
+
+	void PipeIoHost::setRawBlocWrite(void * data, unsigned short dataSize) {
+		dataWrite = (unsigned char *)data;
+		dataToWrite = dataSize;
+		writed = 6;
 	}
 
 	void PipeIoHost::read(unsigned int val, unsigned short iolen) {
@@ -80,7 +86,6 @@ namespace vm {
 			retVal <<= 8;
 			if (writed > 5) {
 				retVal |= dataWrite[writed-6];
-
 				if (writed - 5 == dataToWrite) { 
 					dataToWrite = 0;
 					dataWrite = NULL;

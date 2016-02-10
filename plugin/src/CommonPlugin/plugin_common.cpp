@@ -23,13 +23,13 @@
 #endif
 
 #define PLUGIN_MAJOR_VERSION 0
-#define VM_NAME "DOSBOX"
 
-extern const char PLUGIN_INTRO [];
+#define VM_NAME "DOSBOX"
 
 //////////////////////////////////////////////////////////////////////////////////////
 
 static char * IS_ISO = "ISO";
+extern const int InstanceSize;
 /*
 static const unsigned char MSDOS_ICON[32*32*4] = { 
 	#include "msdos_icon.h"
@@ -347,10 +347,8 @@ LIBRARY_API int VMPLUGIN_CreateInstance(vm::type::VirtualMachine * vm, void * * 
 	if (info->vm_version_major != PLUGIN_MAJOR_VERSION) { return VM_ERROR_UNSUPPORTED_VM_VERSION; }
 	if (strncmp (info->name, VM_NAME, VM_SIZEOF_VMNAME) != 0) { return VM_ERROR_UNSUPPORTED_VM_NAME; }
 
-	Instance * instance = (Instance*)malloc(sizeof(Instance));
-	for (int boucle = 0; boucle < 42; boucle++) { instance->driveMap[boucle] = NULL; }
-
-	instance->pointer = NULL;
+	Instance * instance = (Instance*)malloc(InstanceSize);
+	memset(instance, 0, InstanceSize);
 
 #ifndef WIN32
 	instance->firstCdRomLetter = DEFAULT_mscdex_first_letter;
@@ -382,17 +380,12 @@ LIBRARY_API void VMPLUGIN_DestroyInstance(vm::type::VirtualMachine * vm, void * 
 
 //////////////////////////////////////////////////////////////////////////////////////
 
-LIBRARY_API int VMPLUGIN_PreInit(vm::type::VirtualMachine * vm, void * myInstance)
+int Common_PreInit(vm::type::VirtualMachine * vm, Instance * instance)
 {
 	char cmd [1024];
 
 	if (vm == NULL) { return VM_ERROR_NULL_POINTER_EXCEPTION; }
 	if (vm->structSize < sizeof(vm::type::VirtualMachine)) { return VM_ERROR_BAD_STRUCT_SIZE; }
-	Instance * instance = (Instance*)myInstance;
-
-	vm->logMessage(VMHOST_LOG_CONSOLE, "---");
-	vm->logMessage(VMHOST_LOG_CONSOLE, PLUGIN_INTRO);
-	vm->logMessage(VMHOST_LOG_CONSOLE, "---");
 	vm->sendCommand("echo off");
 	vm->setWindowTitle(vm->getParameter("title"));
 

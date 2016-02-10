@@ -24,43 +24,51 @@ namespace vm {
 	/** \brief Virtual machine's integration tool host. */
 	class IntegrationToolHost : public vm::PipeIoHost  {
 		private: 			
-			vm::type::DataTransfertBlock     readBlock;
-			vm::type::DataTransfertBlock     writeBlock;
-			unsigned char     readType;
-			unsigned long int dataReaded;
+			vm::type::VirtualMachine *        virtualMachine; /**< \brief Host virtual machine. */
+			vm::type::StdGuestFunctionHandles guestFct;       /**< \brief Guest standard functions. */ 
+			vm::type::DataTransfertBlock      readBlock;
+			vm::type::DataTransfertBlock      writeBlock;
+			vm::type::ClipboardBlocHeader     clipboardReadBloc;    /**< Clipoard databloc header to read. */
+			vm::type::ClipboardBlocHeader     clipboardWriteBloc;   /**< Clipoard databloc header to write. */
+			unsigned char                     readType;
+			unsigned long int                 dataReaded;
+			unsigned char                     writeType;
 
 		#ifdef WIN32
-			HGLOBAL hClipboardBuffer;
-			char *  clipboardBuffer;
+			HGLOBAL hClipboardWriteBuffer; /**< \brief Pointer to a Windows clipboard content for write. */
+			HGLOBAL hClipboardReadBuffer;  /**< \brief Pointer to a Windows clipboard content for read. */
+			char *  clipboardReadBuffer;   /**< \brief Pointer to a Windows clipboard buffer. */
+			HWND    hwnd; /**< \brief Handle to a window. */
 		#endif
 
-			void clear();
-
-		protected:
-			#pragma pack(push, 2)
+		#pragma pack(push, 2)
 			/** \brief SetMousePos call arguments and mouse pointer position. */
 			struct SeMousePosArgs {
 				short x; /**< \brief Mouse cursor X position. */
 				short y; /**< \brief Mouse cursor Y position. */
 			} argsSetCursorPos;
-			#pragma pack(pop)
-
-			bool mouseMoved; /**< \brief true if host mouse cursor moved. */
-			bool shutdownRequest;
-			vm::type::VirtualMachine *        virtualMachine; /**< \brief Host virtual machine. */
-			vm::type::StdGuestFunctionHandles guestFct;       /**< \brief Guest standard functions. */ 
-			vm::type::ClipboardBlocHeader     clipboardBloc; 
+		#pragma pack(pop)
+			
+			struct  {
+				bool mouseMoved      : 1; /**< \brief true if host mouse cursor moved. */
+				bool shutdownRequest : 1; /**< \brief Shutdow request. */
+				bool sendClipboardToGuest : 1; /**< \brief Send clipboard data from host to guest. */ 
+			} eventFlags;
 
 			void onDataBlockReaded(void * data, unsigned short dataSize);
 			void onDataBlockWrited();
-
-			void readClipboard (unsigned int val, unsigned short iolen);
+			void clear(); 
 
 		public:
 			/**
 			 * \param virtualMachine Virtual machine to use.
+			 * \param HWND    hwnd Window's handle (Windows only).
 			 */
-			IntegrationToolHost(vm::type::VirtualMachine * virtualMachine);
+			IntegrationToolHost(vm::type::VirtualMachine * virtualMachine
+				#ifdef WIN32
+					, HWND    hwnd
+				#endif
+			);
 
 			/**
 			 * \brief Used into a vm::type::IoOutputHandle function to read data from guest :
@@ -90,9 +98,15 @@ namespace vm {
 				if (argsSetCursorPos.x != x || argsSetCursorPos.y != y) {
 					argsSetCursorPos.x = x;
 					argsSetCursorPos.y = y;
-					mouseMoved = true;
+					eventFlags.mouseMoved = true;
 				}
 			}
+
+
+		#ifdef WIN32
+			/** \brief Send clipboard content to guest. */
+			void SendClipboardData();
+		#endif
 	};
 };
 

@@ -61,6 +61,24 @@ class PipeIoGuest {
 		 * \return If communication error, return negative value; else return recieved data size, if returned value > size, recieved data is truncate.
 		 */
 		inline int readBlock (void * data, unsigned short size) { return ReadBlock(port, data, size); }
+
+
+		/**
+		 * \brief Read un-formated data block from virtual machine's plugin.
+		 * \param port Hardware port number used to communicate with host. 
+		 * \param data Data's pointer to recieve.
+		 * \param size Maximum data size. 
+		 * \return If communication error, return negative value; else return recieved data size, if returned value > size, recieved data is truncate.
+		 */
+		static volatile void PipeIoGuest::Read(unsigned short port, void * data, unsigned short size);
+
+		/**
+		 * \brief Read un-formated data block from virtual machine's plugin.
+		 * \param data Data's pointer to recieve.
+		 * \param size Maximum data size. 
+		 * \return If communication error, return negative value; else return recieved data size, if returned value > size, recieved data is truncate.
+		 */
+		inline void PipeIoGuest::Read(void * data, unsigned short size) { Read(port, data, size); }
 };
 
 #endif

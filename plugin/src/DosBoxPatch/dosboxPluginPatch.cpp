@@ -330,15 +330,15 @@ int DosBoxPluginManager::VM_logMessage (int messageType, const char * message) {
 
 #ifdef WIN32
 		case VMHOST_LOG_ERROR:
-			MessageBox(NULL, message, "DosBox Plugin" ,MB_ICONERROR|MB_OK);
+			MessageBox(NULL, message, "DosBox Plugin", MB_ICONERROR | MB_OK);
 			break;
 
 		case VMHOST_LOG_WARNING:
-			MessageBox(NULL, message, "DosBox Plugin", MB_ICONWARNING|MB_OK);
+			MessageBox(NULL, message, "DosBox Plugin", MB_ICONWARNING | MB_OK);
 			break;
 
 		case VMHOST_LOG_INFO:
-			MessageBox(NULL, message, "DosBox Plugin", MB_ICONEXCLAMATION|MB_OK);
+			MessageBox(NULL, message, "DosBox Plugin", MB_ICONEXCLAMATION | MB_OK);
 			break;
 #else
 		case VMHOST_LOG_ERROR:

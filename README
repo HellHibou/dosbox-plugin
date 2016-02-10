@@ -101,6 +101,7 @@ Win16Plugin Integrattion Tool
 You can install integration tools to add features :
 - Use (working) shared mouse (set autolock=false into config file).
 - Safety close Dosbox.
+- Shared clipboard.
 
 
 To install integration tool :

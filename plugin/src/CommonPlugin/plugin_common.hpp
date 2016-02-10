@@ -39,9 +39,8 @@
 
 //////////////////////////////////////////////////////////////////////////////////////
 
-struct Instance /**< Plugin's instance. */
+struct Instance /**< Plugin's instance (common part). */
 {
-	void      * pointer;
 	char     ( * ( driveMap[42] ));
 	char           tmpAppDrive;
 
@@ -61,5 +60,5 @@ char * toMappedDosPath(Instance * instance, const char * winPath);
 bool ImgMount (vm::type::VirtualMachine * vm, Instance * instance, char drive, const char * isos);
 bool MapDevice (vm::type::VirtualMachine * vm, Instance * instance, char * cmdPattern, char drive, const char * path, bool setLabel = false);
 bool UnmapDevice (vm::type::VirtualMachine * vm, Instance * instance, char drive);
-
+int Common_PreInit(vm::type::VirtualMachine * vm, Instance * instance);
 #endif

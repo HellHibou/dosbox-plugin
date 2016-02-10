@@ -1,3 +1,6 @@
+SVN
+ - Add shared clipboard to integration tools.
+
 0.2
  - Add integration tool for windows 3.1 into Win16Plugin :
    - Use shared mouse.

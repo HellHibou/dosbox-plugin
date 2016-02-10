@@ -19,20 +19,32 @@
 #define READ_TYPE_CLIPBOARD         1
 #define READ_TYPE_CLIPBOARD_CONTENT 2
 
+#define WRITE_TYPE_DEFAULT           0
+#define WRITE_TYPE_CLIPBOARD         1
+#define WRITE_TYPE_CLIPBOARD_CONTENT 2
+
+#define MAX_CLIPBOARD_TRANSFERT (1024 * 1024) /**< \brief Maximun clipboard data size to transfert to guest. */
+
 namespace vm {
 	void IntegrationToolHost::clear() {
-		shutdownRequest = false;
+		eventFlags.shutdownRequest = false;
 		memset(&guestFct, 0, sizeof(guestFct));
+		memset(&eventFlags, 0 , sizeof(eventFlags));
 		argsSetCursorPos.x = 32765;
 		argsSetCursorPos.y = 32765;
-		mouseMoved = true;
+		eventFlags.mouseMoved = true;
 		readType = READ_TYPE_DEFAULT;
 		dataReaded = 0;
+		writeType = WRITE_TYPE_DEFAULT;
 
+		if (hClipboardReadBuffer) {
+			GlobalFree(hClipboardReadBuffer);
+			hClipboardReadBuffer = NULL;
+		}
 
-		if (hClipboardBuffer) {
-			GlobalFree(hClipboardBuffer);
-			hClipboardBuffer = NULL;
+		if (hClipboardWriteBuffer) {
+			GlobalFree(hClipboardWriteBuffer);
+			hClipboardWriteBuffer = NULL;
 		}
 
 		writeBlock.function = INTEGRATION_TOOL_FCT_INIT;
@@ -40,14 +52,23 @@ namespace vm {
 		writeBlock.data.initHost.majorVersion = INTEGRATION_TOOL_MAJOR_VERSION;
 		writeBlock.data.initHost.minorVersion = INTEGRATION_TOOL_MINOR_VERSION;
 
-		setBufferRead(&readBlock);
-		setBufferWrite(&writeBlock, sizeof(vm::type::DataTransfertBlock::Data::InitHost) + 2);
+		setBlocRead(&readBlock);
+		setBlocWrite(&writeBlock, sizeof(vm::type::DataTransfertBlock::Data::InitHost) + 2);
 	};
 
-	IntegrationToolHost::IntegrationToolHost(vm::type::VirtualMachine * myVM) {
+	IntegrationToolHost::IntegrationToolHost(vm::type::VirtualMachine * myVM
+	#ifdef WIN32
+		, HWND    myHwnd
+	#endif
+	) {
 		virtualMachine = myVM;
-		hClipboardBuffer = NULL;
-		clipboardBuffer = NULL;
+		hClipboardReadBuffer = NULL;
+		clipboardReadBuffer = NULL;
+
+		#ifdef WIN32
+			hwnd = myHwnd;
+		#endif
+
 		clear();
 	}
 
@@ -65,7 +86,7 @@ namespace vm {
 						virtualMachine->logMessage(VMHOST_LOG_DEBUG, "Integration tool : Communication error - Invalid data size.");
 					#endif
 
-					setBufferWrite(&writeBlock, sizeof(vm::type::DataTransfertBlock::Data::InitHost) + 2);
+					setBlocWrite(&writeBlock, sizeof(vm::type::DataTransfertBlock::Data::InitHost) + 2);
 				}
 			
 				if (strncmp (((vm::type::DataTransfertBlock *)data)->data.initGuest.magic, INTEGRATION_TOOL_MAGIC, sizeof(writeBlock.data.initGuest.magic) != 0)) { 
@@ -79,7 +100,7 @@ namespace vm {
 						virtualMachine->logMessage(VMHOST_LOG_DEBUG, buffer);
 					#endif
 
-					setBufferWrite(&writeBlock, sizeof(vm::type::DataTransfertBlock::Data::InitHost) + 2);
+					setBlocWrite(&writeBlock, sizeof(vm::type::DataTransfertBlock::Data::InitHost) + 2);
 					return;
 				}
 
@@ -94,7 +115,7 @@ namespace vm {
 						virtualMachine->logMessage(VMHOST_LOG_DEBUG, buffer);
 					#endif
 				
-					setBufferWrite(&writeBlock, sizeof(vm::type::DataTransfertBlock::Data::InitHost) + 2);
+					setBlocWrite(&writeBlock, sizeof(vm::type::DataTransfertBlock::Data::InitHost) + 2);
 					return;
 				}
 
@@ -109,7 +130,7 @@ namespace vm {
 						virtualMachine->logMessage(VMHOST_LOG_DEBUG, buffer);
 					#endif
 
-					setBufferWrite(&writeBlock, sizeof(vm::type::DataTransfertBlock::Data::InitHost) + 2);
+					setBlocWrite(&writeBlock, sizeof(vm::type::DataTransfertBlock::Data::InitHost) + 2);
 					return;
 				}
 
@@ -122,7 +143,7 @@ namespace vm {
 				}
 
 				memcpy (&guestFct, &((vm::type::DataTransfertBlock *)data)->data.initGuest.stdFct, copySize);
-				setBufferWrite(&writeBlock, sizeof(vm::type::DataTransfertBlock::Data::InitHost) + 2);
+				setBlocWrite(&writeBlock, sizeof(vm::type::DataTransfertBlock::Data::InitHost) + 2);
 
 			#ifdef _DEBUG
 				virtualMachine->logMessage(VMHOST_LOG_DEBUG, "Integration tool initialized.");
@@ -146,16 +167,41 @@ namespace vm {
 			// Synchronize host ansd guest
 			//////////////////////////////////////////////////////////////
 			case INTEGRATION_TOOL_FCT_SYNC: 
-				if (mouseMoved && guestFct.SetMousePos.guestPtr.dword != NULL) {
+
+				// Synchronize guest and host mouse position.
+				if (eventFlags.mouseMoved && guestFct.SetMousePos.guestPtr.dword != NULL) {
 					virtualMachine->callGuestFct(guestFct.SetMousePos.guestPtr.word[1], guestFct.SetMousePos.guestPtr.word[0], guestFct.SetMousePos.flags, 2, (unsigned short*) &argsSetCursorPos);
-					mouseMoved = false;
+					eventFlags.mouseMoved = false;
 				}
-				if (shutdownRequest) {
-					shutdownRequest = false;
+
+				// Send shutdown request.
+				if (eventFlags.shutdownRequest) {
+					eventFlags.shutdownRequest = false;
 
 					if (guestFct.ShutdownRequest.guestPtr.dword != NULL) {
 						virtualMachine->callGuestFct(guestFct.ShutdownRequest.guestPtr.word[1], guestFct.ShutdownRequest.guestPtr.word[0], guestFct.ShutdownRequest.flags, 0, NULL);
 					}
+				}
+
+				// Send clipboard content to guest.
+				if(eventFlags.sendClipboardToGuest) {
+					#ifdef WIN32
+						if (CountClipboardFormats()) { 
+							if (OpenClipboard ((HWND)hwnd)) { 
+								#ifdef _DEBUG
+									virtualMachine->logMessage(VMHOST_LOG_DEBUG, "Start clipboard transfert from host to guest.");
+								#endif
+
+								clipboardWriteBloc.contentType = 0;
+								writeBlock.function = INTEGRATION_TOOL_FCT_SET_CLIPBOARD_CONTENT;
+								setBlocWrite(&writeBlock, 2);
+								writeType = WRITE_TYPE_CLIPBOARD_CONTENT;
+								virtualMachine->callGuestFct(guestFct.SetCliboardContent.guestPtr.word[1], guestFct.SetCliboardContent.guestPtr.word[0], guestFct.SetCliboardContent.flags, 0, NULL);
+							}
+						}
+					#endif
+
+					eventFlags.sendClipboardToGuest = false;
 				}
 				break;
 
@@ -165,7 +211,7 @@ namespace vm {
 			//////////////////////////////////////////////////////////////
 			case INTEGRATION_TOOL_FCT_SET_CLIPBOARD_CONTENT:
 				#ifdef _DEBUG
-					virtualMachine->logMessage(VMHOST_LOG_DEBUG, "Start clipboard transfert from guest.");
+					virtualMachine->logMessage(VMHOST_LOG_DEBUG, "Start clipboard transfert from guest to host.");
 				#endif
 
 				readType = READ_TYPE_CLIPBOARD;
@@ -198,12 +244,12 @@ namespace vm {
 			// Transfert clipboard from guest to host.
 			//////////////////////////////////////////////////////////////
 			case READ_TYPE_CLIPBOARD:
-				strncpy(((char*) &clipboardBloc)+dataReaded, (char*)&val, iolen);
+				strncpy(((char*) &clipboardReadBloc)+dataReaded, (char*)&val, iolen);
 				dataReaded += iolen;
 
-				if (dataReaded >= sizeof(clipboardBloc)) {
-					if (clipboardBloc.dataSize == 0L) {
-						if (clipboardBloc.contentType == 0) {
+				if (dataReaded >= sizeof(clipboardReadBloc)) {
+					if (clipboardReadBloc.dataSize == 0L) {
+						if (clipboardReadBloc.contentType == 0) {
 							CloseClipboard();
 							readType = READ_TYPE_DEFAULT; 
 
@@ -211,10 +257,10 @@ namespace vm {
 							virtualMachine->logMessage(VMHOST_LOG_DEBUG, "Clipboard transfered complete.");
 						#endif
 						} else {
-							SetClipboardData(clipboardBloc.contentType, NULL);
+							SetClipboardData(clipboardReadBloc.contentType, NULL);
 						#ifdef _DEBUG
 							char * msgBuffer = (char*) malloc (128);
-							sprintf(msgBuffer, "Set clipboard data type=%i size=%i", (int)clipboardBloc.contentType, clipboardBloc.dataSize);
+							sprintf(msgBuffer, "Recept clipboard data : content-id=%i, content-size=%i", (int)clipboardReadBloc.contentType, clipboardReadBloc.dataSize);
 							virtualMachine->logMessage(VMHOST_LOG_DEBUG, msgBuffer);
 							free(msgBuffer);
 						#endif
@@ -224,13 +270,13 @@ namespace vm {
 					}
 
 				#ifdef WIN32
-					hClipboardBuffer = GlobalAlloc(GMEM_MOVEABLE, clipboardBloc.dataSize);
-					if (!hClipboardBuffer) {
-						clipboardBuffer = NULL;
+					hClipboardReadBuffer = GlobalAlloc(GMEM_MOVEABLE, clipboardReadBloc.dataSize);
+					if (!hClipboardReadBuffer) {
+						clipboardReadBuffer = NULL;
 						return;
 					}		
 
-					clipboardBuffer = (char*)GlobalLock(hClipboardBuffer);
+					clipboardReadBuffer = (char*)GlobalLock(hClipboardReadBuffer);
 				#endif
 					dataReaded = 0;
 					readType = READ_TYPE_CLIPBOARD_CONTENT; 
@@ -240,21 +286,21 @@ namespace vm {
 
 			case READ_TYPE_CLIPBOARD_CONTENT: // Read clipboard item
 				#ifdef WIN32
-					strncpy(clipboardBuffer, (char*) &val, iolen);
-					clipboardBuffer+=iolen;
+					strncpy(clipboardReadBuffer, (char*) &val, iolen);
+					clipboardReadBuffer += iolen;
 				#endif
 
 				dataReaded += iolen;
-				if (dataReaded >= clipboardBloc.dataSize) { 
+				if (dataReaded >= clipboardReadBloc.dataSize) { 
 					#ifdef WIN32
-							GlobalUnlock(hClipboardBuffer);
-							SetClipboardData(clipboardBloc.contentType, hClipboardBuffer);
-							GlobalFree(hClipboardBuffer); 
-							hClipboardBuffer = NULL;
+							GlobalUnlock(hClipboardReadBuffer);
+							SetClipboardData(clipboardReadBloc.contentType, hClipboardReadBuffer);
+							GlobalFree(hClipboardReadBuffer); 
+							hClipboardReadBuffer = NULL;
 					
 						#ifdef _DEBUG
 							char * msgBuffer = (char*) malloc (128);
-							sprintf(msgBuffer, "Set clipboard data : content-id=%i, content-size=%i", (int)clipboardBloc.contentType, clipboardBloc.dataSize);
+							sprintf(msgBuffer, "Recept clipboard data : content-id=%i, content-size=%i", (int)clipboardReadBloc.contentType, clipboardReadBloc.dataSize);
 							virtualMachine->logMessage(VMHOST_LOG_DEBUG, msgBuffer);
 							free(msgBuffer);
 						#endif
@@ -267,15 +313,83 @@ namespace vm {
 	}
 
 	void IntegrationToolHost::onDataBlockWrited() {	
-		setBufferWrite(&writeBlock, sizeof(vm::type::DataTransfertBlock::Data::InitHost) + 2); 
+		switch(writeType) {
+			case WRITE_TYPE_DEFAULT:
+				setBlocWrite(&writeBlock, sizeof(vm::type::DataTransfertBlock::Data::InitHost) + 2); 
+				break;
+#ifdef WIN32
+			case WRITE_TYPE_CLIPBOARD : {
+				char * pGlobal = (char *) GlobalLock (hClipboardWriteBuffer);
+				writeType = WRITE_TYPE_CLIPBOARD_CONTENT;
+				setRawBlocWrite(pGlobal, clipboardWriteBloc.dataSize);
+			}
+			break;
+
+			case WRITE_TYPE_CLIPBOARD_CONTENT :{
+				bool looping = true;
+
+				if (hClipboardWriteBuffer != NULL) {
+					GlobalUnlock(hClipboardWriteBuffer);
+					hClipboardWriteBuffer = NULL;
+				}
+
+				while (looping) {
+					clipboardWriteBloc.contentType = EnumClipboardFormats(clipboardWriteBloc.contentType); 
+
+					if (clipboardWriteBloc.contentType) {
+
+						if (clipboardWriteBloc.contentType <= CF_GDIOBJLAST) { /**< Skip Non-standard format. */
+							hClipboardWriteBuffer = GetClipboardData (clipboardWriteBloc.contentType);
+
+							if (hClipboardWriteBuffer != NULL)  {
+								clipboardWriteBloc.dataSize = GlobalSize(hClipboardWriteBuffer);
+
+								if (clipboardWriteBloc.dataSize > 0 && clipboardWriteBloc.dataSize < MAX_CLIPBOARD_TRANSFERT) {
+									looping = false;
+									setRawBlocWrite(&clipboardWriteBloc);
+									writeType = WRITE_TYPE_CLIPBOARD;
+
+									#ifdef _DEBUG
+											char * msgBuffer = (char*) malloc (128);
+											sprintf(msgBuffer, "Send clipboard data : content-id=%i, content-size=%i", clipboardWriteBloc.contentType, clipboardWriteBloc.dataSize);
+											virtualMachine->logMessage(VMHOST_LOG_DEBUG, msgBuffer);
+											free(msgBuffer);
+									#endif
+								}
+							}
+						}
+			
+					} else { // end of clipboard
+						CloseClipboard ();
+						writeType = WRITE_TYPE_DEFAULT;
+						clipboardWriteBloc.contentType = 0;
+						clipboardWriteBloc.dataSize = 0;
+						setRawBlocWrite(&clipboardWriteBloc);
+
+						#ifdef _DEBUG
+							virtualMachine->logMessage(VMHOST_LOG_DEBUG, "Clipboard transfert completed.");
+						#endif
+
+						return;
+					}
+				}	
+			}
+		}
+#endif
 	}
 
 	bool IntegrationToolHost::ShutdownRequest () {
 		if (guestFct.ShutdownRequest.guestPtr.dword != NULL) {
-			shutdownRequest = true;
+			eventFlags.shutdownRequest = true;
 			return true;
 		} else {
 			return false;
 		}
 	}
+
+#ifdef WIN32
+	void IntegrationToolHost::SendClipboardData() {
+		eventFlags.sendClipboardToGuest = true; 
+	}
+#endif
 }

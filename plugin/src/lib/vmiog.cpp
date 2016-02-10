@@ -73,3 +73,13 @@ volatile int PipeIoGuest::ReadBlock(unsigned short port, void * data, unsigned s
 
 	return dataSize;
 }
+
+
+volatile void PipeIoGuest::Read(unsigned short port, void * data, unsigned short size) {
+	char *ptr =(char *) data;
+	while (size > 0) {
+		*ptr = inportb (port);
+		ptr++;
+		size --;
+	}
+}

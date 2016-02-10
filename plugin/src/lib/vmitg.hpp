@@ -79,11 +79,26 @@ class IntegrationToolGuest {
 		inline void TimerRequest() { PipeIoGuest::WriteBlock (port, &dataBlock, 2); }	
 
 		#if defined(_WIN32) || defined(_WIN16)
+
 		/**
 		 * \brief Send clipboard content to host.
 		 * \param hwnd Window handle.
 		 */
 		void SendClipboardData(void * hwnd);
+		
+		/**
+		 * \brief Recept clipboard content from host.
+		 * \param hwnd Window handle.
+		 */
+		void ReceptClipboardData(void * hwnd);
+
+		/**
+		 * \fn defineSetCliboardContent
+		 * \brief Define 'SetCliboardContent' function called by host integration tool.
+		 * \param function Pointer to function.
+		 * \param flags Call flags.
+		 */
+		__JREKCED_VMITG_HPP_SET_FCT__(SetCliboardContent);
 		#endif
 
 		/**
@@ -101,6 +116,7 @@ class IntegrationToolGuest {
 		 * \param flags Call flags.
 		 */
 		__JREKCED_VMITG_HPP_SET_FCT__(ShutdownRequest);
+
 };
 
 #undef __JREKCED_VMITG_HPP_SET_FCT__

@@ -45,14 +45,14 @@ namespace vm {
 			 * \param data Data's pointer to recieve.
 			 * \param maxDataSize Maximum data size.
 			 */
-			void setBufferRead(void * data, unsigned short maxDataSize);
+			void setBlocRead(void * data, unsigned short maxDataSize);
 			
 			/**
 			 * \brief Set data buffer to read from guest.
 			 * \param data Data's pointer to recieve.
 			 */
-			template <typename T> inline void setBufferRead(T * data) {
-				setBufferRead((void*)data, sizeof(T));
+			template <typename T> inline void setBlocRead(T * data) {
+				setBlocRead((void*)data, sizeof(T));
 			}
 
 			/**
@@ -60,14 +60,29 @@ namespace vm {
 			 * \param data Data's pointer to send.
 			 * \param dataSize Size of data to send.
 			 */
-			void setBufferWrite(void * data, unsigned short dataSize);
+			void setBlocWrite(void * data, unsigned short dataSize);
 
 			/**
 			 * \brief Set data buffer to send to guest.
 			 * \param data Data's pointer to send.
 			 */
-			template <typename T> inline void setBufferWrite(T * data) {
-				setBufferWrite((void*)data, sizeof(T)); 
+			template <typename T> inline void setBlocWrite(T * data) {
+				setBlocWrite((void*)data, sizeof(T)); 
+			}
+
+			/**
+			 * \brief Set data buffer to send to guest without header.
+			 * \param data Data's pointer to send.
+			 * \param dataSize Size of data to send.
+			 */
+			void setRawBlocWrite(void * data, unsigned short dataSize);
+
+			/**
+			 * \brief Set data buffer to send to guest without header.
+			 * \param data Data's pointer to send.
+			 */
+			template <typename T> inline void setRawBlocWrite(T * data) {
+				setRawBlocWrite((void*)data, sizeof(T)); 
 			}
 
 		public:

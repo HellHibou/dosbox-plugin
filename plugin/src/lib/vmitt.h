@@ -86,6 +86,9 @@ struct StdGuestFunctionHandles {
 
 	/** \brief Guest pointer handle to SetMousePos function. */
 	GuestHandle SetMousePos;
+
+	/** \brief Guest pointer handle to SetCliboardContent function. */
+	GuestHandle SetCliboardContent;
 };
 
 /** \brief Data transfert structure. */

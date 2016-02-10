@@ -28,6 +28,7 @@
 #define VM_ERROR_UNSUPPORTED_COMMAND      -7 /**< Unsupported command. */
 #define VM_ERROR_COMMAND_FAILED           -8 /**< Command failed. */
 #define VM_ERROR_OVERFLOW                 -9 /**< Overflow. */
+#define VM_INTERNAL_ERROR                 -10 /**< Internal error. */
 #define VM_UNKNOWN_ERROR                -999 /**< Unknow error. */
 #define VM_CUSTOM_VM_ERROR			   -1000 /**< First specific error code of virtual machine. */
 
