@@ -115,6 +115,9 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <None Include="..\..\..\ChangeLog" />
+    <None Include="..\..\..\README" />
+    <None Include="..\..\scripts\dosbox-dos.conf" />
     <None Include="..\..\src\DosPlugin\DosPlugin.ico" />
     <None Include="Plugin.def" />
     <None Include="res\DosPlugin.rc2" />

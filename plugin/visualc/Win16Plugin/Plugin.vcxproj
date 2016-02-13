@@ -116,6 +116,9 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <None Include="..\..\..\ChangeLog" />
+    <None Include="..\..\..\README" />
+    <None Include="..\..\scripts\dosbox-win16.conf" />
     <None Include="..\..\src\Win16Plugin\Win16Plugin.ico" />
     <None Include="Plugin.def" />
     <None Include="res\Plugin.rc2" />

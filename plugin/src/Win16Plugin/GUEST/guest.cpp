@@ -40,14 +40,8 @@ void beforeExit() {
 	ChangeClipboardChain (winHwnd, hwndNextClpViewer);
 }
 
-void ShutdownRequest() {
-	ExitWindows(0,0);
-}
-static BOOL clipboardLock = FALSE;
 void SetCliboardContent () {
-	clipboardLock = TRUE;
 	integrationTool.ReceptClipboardData((void *)winHwnd);
-	clipboardLock = FALSE;
 }
 
 void Initialize(HINSTANCE hinst) {
@@ -108,8 +102,6 @@ void Initialize(HINSTANCE hinst) {
 		exit (e->getCode());
 	}
 
-	integrationTool.defineSetMousePos(SetCursorPos, VM_CALL_FLAG_16BITS | VM_CALL_FLAG_PASCAL);
-	integrationTool.defineShutdownRequest(ShutdownRequest, VM_CALL_FLAG_16BITS | VM_CALL_FLAG_C);
 	integrationTool.defineSetCliboardContent(SetCliboardContent, VM_CALL_FLAG_16BITS);
 	integrationTool.InitHost(INTEGRATION_TOOL_GUEST_ID);
 	atexit(beforeExit);
@@ -121,7 +113,6 @@ void Initialize(HINSTANCE hinst) {
 	SystemParametersInfo(SPI_GETMOUSE, 0, &oldMouseParam, 0);
 	unsigned short mouseParam [3] = { 6, 10, 1 };
 	SystemParametersInfo(SPI_SETMOUSE, 0, &mouseParam, 0);
-
 
 	// Enable host communication
 	SetTimer(NULL, 0, 50,(TIMERPROC) timer);
@@ -138,14 +129,15 @@ LRESULT CALLBACK WndProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 			else if (hwndNextClpViewer) { SendMessage (hwndNextClpViewer, message, wParam, lParam); }
 			return 0;
 
-		case WM_DRAWCLIPBOARD: if (clipboardLock == FALSE) {
-
+		case WM_DRAWCLIPBOARD: {
 			integrationTool.SendClipboardData ((void*)hwnd);
-			if (hwndNextClpViewer) { SendMessage (hwndNextClpViewer, message, wParam, lParam) ; }
+			if (hwndNextClpViewer) { 
+				SendMessage (hwndNextClpViewer, message, wParam, lParam); 
+			}
 			return 0;
 		}
-		////////////////////////////////////////////
 
+		////////////////////////////////////////////
 	 }
 	 return DefWindowProc (hwnd, message, wParam, lParam) ;
 }
@@ -167,4 +159,3 @@ int PASCAL WinMain (HINSTANCE hinst, HINSTANCE prev_inst, LPSTR /*cmdline*/, int
 
 	return 0;
 }
-

@@ -24,6 +24,9 @@
     <None Include="..\..\src\Win16Plugin\Win16Plugin.ico">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="..\..\..\README" />
+    <None Include="..\..\..\ChangeLog" />
+    <None Include="..\..\scripts\dosbox-win16.conf" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\lib\iconset.cpp">

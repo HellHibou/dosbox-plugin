@@ -24,6 +24,9 @@
     <None Include="..\..\src\DosPlugin\DosPlugin.ico">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="..\..\..\ChangeLog" />
+    <None Include="..\..\..\README" />
+    <None Include="..\..\scripts\dosbox-dos.conf" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="DosPlugin.rc">

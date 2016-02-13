@@ -39,7 +39,9 @@ namespace vm {
 			HGLOBAL hClipboardReadBuffer;  /**< \brief Pointer to a Windows clipboard content for read. */
 			char *  clipboardReadBuffer;   /**< \brief Pointer to a Windows clipboard buffer. */
 			HWND    hwnd; /**< \brief Handle to a window. */
+
 		#endif
+		
 
 		#pragma pack(push, 2)
 			/** \brief SetMousePos call arguments and mouse pointer position. */
@@ -60,6 +62,12 @@ namespace vm {
 			void clear(); 
 
 		public:
+			/** \brief Default maximun clipboard data size to transfert to guest. */
+			static const long  DEFAULT_MAX_CLIPBOARD_TRANSFERT_SIZE = (1024 * 1024);
+
+			/** \brief Maximum clipboard data size to send to guest. If 0, don't send synchronise host and guest clipboard. */
+			long maxClipboardTransfertSize; 
+
 			/**
 			 * \param virtualMachine Virtual machine to use.
 			 * \param HWND    hwnd Window's handle (Windows only).
@@ -102,11 +110,8 @@ namespace vm {
 				}
 			}
 
-
-		#ifdef WIN32
-			/** \brief Send clipboard content to guest. */
+			/** \brief Send clipboard content to guest (if supported). */
 			void SendClipboardData();
-		#endif
 	};
 };
 

@@ -39,9 +39,19 @@ const char * IntegrationToolGuest::Exception::getMessage() { return msg; }
 
 ////////////////////////////////////////////////////////////////////////////////////////
 
+unsigned char IntegrationToolGuest::clipboardLock = 0;
+
 IntegrationToolGuest::IntegrationToolGuest() {
 	memset (&dataBlock, sizeof(dataBlock), 0);
 	port = 0;
+
+	#if defined(_WIN32) || defined(_WIN16)
+		dataBlock.data.initGuest.stdFct.ShutdownRequest.guestPtr.pointer = IntegrationToolGuest::onShutdownRequest; 
+		dataBlock.data.initGuest.stdFct.ShutdownRequest.flags = VM_CALL_FLAG_16BITS | VM_CALL_FLAG_C;
+
+		dataBlock.data.initGuest.stdFct.SetMousePos.guestPtr.pointer = SetCursorPos; 
+		dataBlock.data.initGuest.stdFct.SetMousePos.flags = VM_CALL_FLAG_16BITS | VM_CALL_FLAG_PASCAL;
+	#endif
 }
 
  IntegrationToolGuest::Exception * IntegrationToolGuest::Connect(unsigned short ioPort) {
@@ -102,9 +112,15 @@ void IntegrationToolGuest::InitHost(const char guestId[8]) {
 
 #if defined(_WIN32) || defined(_WIN16)
 
-void IntegrationToolGuest::SendClipboardData(void * hwnd) {
-	if (CountClipboardFormats() == 0) { return;}
-	if (OpenClipboard ((HWND)hwnd) == FALSE) { return; }
+void IntegrationToolGuest::onShutdownRequest() {
+	ExitWindows(0,0);
+}
+
+unsigned char IntegrationToolGuest::SendClipboardData(void * hwnd) {
+	if (clipboardLock == 1) { return 0; }
+	if (CountClipboardFormats() == 0) { return 1;}
+	if (OpenClipboard ((HWND)hwnd) == FALSE) { return 1; }
+
 	dataBlock.function = INTEGRATION_TOOL_FCT_SET_CLIPBOARD_CONTENT;
 	PipeIoGuest::WriteBlock(port, &dataBlock, 2);
 	ClipboardBlocHeader clpBloc;
@@ -130,18 +146,19 @@ void IntegrationToolGuest::SendClipboardData(void * hwnd) {
 		clpBloc.contentType = EnumClipboardFormats(clpBloc.contentType); 
 	}
 
-
 	clpBloc.contentType = 0;
 	clpBloc.dataSize = 0;
 	PipeIoGuest::Write(port, &clpBloc, sizeof(ClipboardBlocHeader));
 	CloseClipboard ();
 	dataBlock.function = INTEGRATION_TOOL_FCT_SYNC;
+	return 1;
 };
 
 
 void IntegrationToolGuest::ReceptClipboardData(void * hwnd) {
 	ClipboardBlocHeader blocHeader;
-	BOOL clipOpened;
+	unsigned char clipOpened;
+	clipboardLock = 1;
 
 /////////////////////
 	unsigned int fct;
@@ -163,13 +180,19 @@ void IntegrationToolGuest::ReceptClipboardData(void * hwnd) {
 			char * clipboardBuffer = (char*) GlobalLock(hClipboardReadBuffer);
 			PipeIoGuest::Read(port, clipboardBuffer, blocHeader.dataSize);
 			GlobalUnlock(hClipboardReadBuffer);
-			SetClipboardData(blocHeader.contentType, hClipboardReadBuffer);
+
+			if (clipOpened == TRUE) {
+				SetClipboardData(blocHeader.contentType, hClipboardReadBuffer);
+			} else {
+				GlobalFree(hClipboardReadBuffer);
+			}
 		}
 
 		PipeIoGuest::Read(port, &blocHeader, sizeof (ClipboardBlocHeader));
 	}
 
 	CloseClipboard ();
+	clipboardLock = 0;
 }
 
 #endif

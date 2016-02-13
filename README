@@ -94,6 +94,8 @@ application-window: Status of application's window of the application to launch 
                     maximized: Start application maximized.
                     default:   Start application with default size. 					
 
+max-clipboard-transfert-size: Maximum size of clipboard data to send from guest to host. (Default value is 1 Mo).
+
 
 Win16Plugin Integrattion Tool
 ==============================

@@ -23,16 +23,33 @@
 #define WRITE_TYPE_CLIPBOARD         1
 #define WRITE_TYPE_CLIPBOARD_CONTENT 2
 
-#define MAX_CLIPBOARD_TRANSFERT (1024 * 1024) /**< \brief Maximun clipboard data size to transfert to guest. */
-
 namespace vm {
+
+	IntegrationToolHost::IntegrationToolHost(vm::type::VirtualMachine * myVM
+	#ifdef WIN32
+		, HWND    myHwnd
+	#endif
+	) {
+		virtualMachine = myVM;
+		hClipboardReadBuffer = NULL;
+		clipboardReadBuffer = NULL;
+
+		#ifdef WIN32
+			hwnd = myHwnd;
+			maxClipboardTransfertSize = DEFAULT_MAX_CLIPBOARD_TRANSFERT_SIZE;
+		#endif
+
+		clear();
+	}
+		
 	void IntegrationToolHost::clear() {
-		eventFlags.shutdownRequest = false;
 		memset(&guestFct, 0, sizeof(guestFct));
 		memset(&eventFlags, 0 , sizeof(eventFlags));
 		argsSetCursorPos.x = 32765;
 		argsSetCursorPos.y = 32765;
+		eventFlags.shutdownRequest = false;
 		eventFlags.mouseMoved = true;
+		eventFlags.sendClipboardToGuest = false; 
 		readType = READ_TYPE_DEFAULT;
 		dataReaded = 0;
 		writeType = WRITE_TYPE_DEFAULT;
@@ -55,22 +72,6 @@ namespace vm {
 		setBlocRead(&readBlock);
 		setBlocWrite(&writeBlock, sizeof(vm::type::DataTransfertBlock::Data::InitHost) + 2);
 	};
-
-	IntegrationToolHost::IntegrationToolHost(vm::type::VirtualMachine * myVM
-	#ifdef WIN32
-		, HWND    myHwnd
-	#endif
-	) {
-		virtualMachine = myVM;
-		hClipboardReadBuffer = NULL;
-		clipboardReadBuffer = NULL;
-
-		#ifdef WIN32
-			hwnd = myHwnd;
-		#endif
-
-		clear();
-	}
 
 	void IntegrationToolHost::onDataBlockReaded(void * data, unsigned short dataSize) {
 		switch (((vm::type::DataTransfertBlock *)data)->function) {
@@ -148,6 +149,8 @@ namespace vm {
 			#ifdef _DEBUG
 				virtualMachine->logMessage(VMHOST_LOG_DEBUG, "Integration tool initialized.");
 			#endif
+
+				SendClipboardData();
 			} break;
  
 
@@ -333,6 +336,8 @@ namespace vm {
 					hClipboardWriteBuffer = NULL;
 				}
 
+				unsigned long dataTransfered = 0;
+
 				while (looping) {
 					clipboardWriteBloc.contentType = EnumClipboardFormats(clipboardWriteBloc.contentType); 
 
@@ -344,7 +349,8 @@ namespace vm {
 							if (hClipboardWriteBuffer != NULL)  {
 								clipboardWriteBloc.dataSize = GlobalSize(hClipboardWriteBuffer);
 
-								if (clipboardWriteBloc.dataSize > 0 && clipboardWriteBloc.dataSize < MAX_CLIPBOARD_TRANSFERT) {
+								dataTransfered += clipboardWriteBloc.dataSize;
+								if (clipboardWriteBloc.dataSize > 0 && dataTransfered < maxClipboardTransfertSize) {
 									looping = false;
 									setRawBlocWrite(&clipboardWriteBloc);
 									writeType = WRITE_TYPE_CLIPBOARD;
@@ -387,9 +393,10 @@ namespace vm {
 		}
 	}
 
-#ifdef WIN32
+
 	void IntegrationToolHost::SendClipboardData() {
-		eventFlags.sendClipboardToGuest = true; 
+		if (maxClipboardTransfertSize > 0) {
+			eventFlags.sendClipboardToGuest = true; 
+		}
 	}
-#endif
 }

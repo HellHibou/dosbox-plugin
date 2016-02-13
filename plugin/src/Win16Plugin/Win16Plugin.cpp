@@ -26,6 +26,7 @@ struct Win16Instance /**< Plugin's instance. */
 	Instance    common;
 	vm::IntegrationToolHost * integrationTool;
 	vm::type::VirtualMachine * vm;
+
 	#ifdef WIN32
 		HWND hwndNextClpViewer;
 		HWND hwnd;
@@ -119,6 +120,13 @@ LIBRARY_API int VMPLUGIN_PreInit(vm::type::VirtualMachine * vm, void * myInstanc
 		instance->integrationTool = new vm::IntegrationToolHost(vm);
 	#endif
 
+	const char * value = vm->getParameter("max-clipboard-transfert-size");
+	if (value != NULL) {
+		long lvalue = atoi(value);
+		if (lvalue > 0) {
+			instance->integrationTool->maxClipboardTransfertSize = lvalue;
+		}
+	}
 	vm->setIoOutputHandle (INTEGRATION_TOOL_DEFAULT_IO_PORT, (vm::type::IoOutputHandle)io_write, 4);
 	vm->setIoInputHandle  (INTEGRATION_TOOL_DEFAULT_IO_PORT, (vm::type::IoInputHandle) io_read,  4);
 	vm->setMouseMoveEventHandle((vm::type::MouseMoveEventHandle)mouseHnd);
